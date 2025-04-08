@@ -130,6 +130,7 @@
             cursor: pointer;
             font-weight: 500;
             transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
         }
         .menu-button:hover {
             background-color: #fff;
@@ -295,7 +296,7 @@
     <div class="menu-frame" id="menu-frame">
         <h1>WSLF Radio NWS Product Puller</h1>
         <p>Version Beta 1.0</p>
-        <button class="menu-button" onclick="fetchRWR()">Fetch RWR</button>
+        <button class="menu-button" id="fetchButton">Fetch RWR</button>
     </div>
 
     <div id="display-frame" style="display:none;"></div>
@@ -304,17 +305,32 @@
         async function fetchRWR() {
             const url = 'https://forecast.weather.gov/product.php?site=psr&issuedby=az&product=RWR';
             const headers = {
-                'User-Agent': 'Mozilla/5.0 (compatible; MyWeatherApp/1.0; +https://myappdomain.com)'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', // Mimic a common browser
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Referer': 'https://forecast.weather.gov/' // Add Referer to mimic legitimate traffic
             };
 
             try {
-                const response = await fetch(url, { headers });
-                if (!response.ok) throw new Error(`Failed to fetch page. Status code: ${response.status}`);
+                console.log('Attempting to fetch RWR data...');
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: headers,
+                    mode: 'cors', // Explicitly set CORS mode
+                    cache: 'no-store' // Prevent caching issues on mobile
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}, ${response.statusText}`);
+                }
+
                 const html = await response.text();
+                console.log('Fetched HTML successfully, parsing...');
+
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const preTag = doc.querySelector('pre');
-                if (!preTag) throw new Error('RWR data block not found.');
+                if (!preTag) throw new Error('RWR data block (<pre> tag) not found in response.');
 
                 const rawText = preTag.textContent;
                 const lines = rawText.split('\n');
@@ -328,10 +344,15 @@
                     }
                 });
 
+                if (weatherData.length === 0) {
+                    throw new Error('No valid weather data parsed from response.');
+                }
+
                 displayWeather(weatherData);
+                console.log('Weather data displayed successfully.');
             } catch (error) {
-                console.error('Fetch error: ', error);
-                alert('Error fetching RWR data: ' + error.message);
+                console.error('Fetch error:', error);
+                alert(`Error fetching RWR data: ${error.message}\nCheck the console for more details.`);
             }
         }
 
@@ -383,11 +404,6 @@
                 fields.pressure = null;
             }
 
-            // Debug log
-            console.log(`Raw: ${line}`);
-            console.log(`Tokens: ${tokens.join(' | ')}`);
-            console.log(`Parsed: city=${fields.city}, skyWx=${fields.skyWx}, temp=${fields.temp}, dp=${fields.dewPoint}, rh=${fields.rh}, wind=${fields.wind}, pres=${fields.pressure}`);
-
             return {
                 city: fields.city,
                 skyWx: fields.skyWx,
@@ -400,7 +416,6 @@
         }
 
         function formatWeatherForSpeech(data) {
-            // Is whe weather data available?
             if ((!data.temp && !data.dewPoint && !data.rh && !data.wind && !data.pressure) || data.skyWx === 'NOT AVBL') {
                 return `The report from ${data.city} was not available.`;
             }
@@ -419,10 +434,10 @@
                 'RAIN': 'Rain was falling',
                 'SNOW': 'Snow was falling'
             };
-            const skyWxText = skyWxMap[data.skyWx] || null; // Null if not in map
+            const skyWxText = skyWxMap[data.skyWx] || null;
 
             const parts = [`At ${data.city}`];
-            if (skyWxText) parts.push(skyWxText.toLowerCase()); // Only add WC is validdd
+            if (skyWxText) parts.push(skyWxText.toLowerCase());
 
             if (data.temp) parts.push(`the temperature was ${data.temp} degrees`);
             if (data.dewPoint) parts.push(`dew point ${data.dewPoint}`);
@@ -499,7 +514,7 @@
             showCurrent();
         }
 
-        // The mobile thingy for you phone people
+        // Mobile menu adjustment
         const menuItemsContainer = document.querySelector('.menu-items');
         const dropdownMenu = document.querySelector('#dropdown-menu');
         const menuItems = Array.from(document.querySelectorAll('.menu-item'));
@@ -535,6 +550,14 @@
                 }
             });
         }
+
+        // Add touch support and event listener for mobile
+        const fetchButton = document.getElementById('fetchButton');
+        fetchButton.addEventListener('click', fetchRWR);
+        fetchButton.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent double-tap zoom or other default behaviors
+            fetchRWR();
+        }, { passive: false });
 
         window.addEventListener('load', adjustMenuForMobile);
         window.addEventListener('resize', adjustMenuForMobile);
