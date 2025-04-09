@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
-    <title>WSLF Radio NWS Product Puller ver. beta 1.0</title>
+    <title>WSLF Radio NWS Regional Observations ver. beta 1.0</title>
     <link rel="icon" href="WSLF_Transparent.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -18,9 +18,25 @@
             line-height: 1.6;
             overflow-x: hidden;
         }
-        .menu-bar {
+        .time-header {
             position: fixed;
             top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 5px 0;
+            font-size: 1.2rem;
+            font-weight: 500;
+            z-index: 1100;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            animation: fadeInDown 0.8s ease-out forwards;
+        }
+        .menu-bar {
+            position: fixed;
+            top: 30px;
             left: 0;
             background-color: #3a3a3a;
             display: flex;
@@ -106,21 +122,21 @@
             background-color: #fff;
             color: #000;
         }
-        .menu-frame {
+        .content-frame {
             max-width: 800px;
-            margin: 80px auto 30px auto;
+            margin: 110px auto 30px auto;
             padding: 25px;
             background: rgba(0, 0, 0, 0.9);
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-            text-align: center;
+            text-align: left;
             opacity: 0;
             transform: translateY(20px);
             animation: fadeInUp 0.8s ease-out forwards;
         }
         .menu-button {
             display: inline-block;
-            margin: 10px;
+            margin: 10px 0;
             padding: 10px 20px;
             background-color: #3a3a3a;
             color: #e0e0e0;
@@ -134,33 +150,6 @@
             background-color: #fff;
             color: #000;
         }
-        .warning-display {
-            max-width: 800px;
-            margin: 80px auto 30px auto;
-            padding: 25px;
-            background: rgba(0, 0, 0, 0.9);
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-            text-align: left;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-        .nav-button {
-            margin: 10px;
-            padding: 10px 20px;
-            background-color: #3a3a3a;
-            color: #e0e0e0;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .nav-button:hover {
-            background-color: #fff;
-            color: #000;
-        }
         h1 {
             text-align: center;
             color: #f0f0f0;
@@ -170,7 +159,7 @@
             opacity: 0;
             animation: fadeIn 1s ease-out 0.2s forwards;
         }
-        h3 {
+        h2 {
             font-size: 1.8rem;
             font-weight: 500;
             color: #e0e0e0;
@@ -183,19 +172,13 @@
             color: #d0d0d0;
             margin: 15px 0;
         }
-        a {
-            color: #4e9af1;
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        a:hover {
-            background-color: #fff;
-            color: #000;
-        }
         @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeInDown {
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -221,20 +204,20 @@
             .dropdown-item {
                 padding: 6px 10px;
             }
-            .menu-frame, .warning-display {
-                margin: 70px 20px 20px 20px;
+            .content-frame {
+                margin: 100px 20px 20px 20px;
                 padding: 20px;
             }
             h1 {
                 font-size: 1.8rem;
             }
-            h3 {
+            h2 {
                 font-size: 1.4rem;
             }
             p {
                 font-size: 1rem;
             }
-            .menu-button, .nav-button {
+            .menu-button {
                 padding: 8px 16px;
             }
         }
@@ -250,25 +233,26 @@
             .dropdown-item {
                 padding: 5px 8px;
             }
-            .menu-frame, .warning-display {
+            .content-frame {
                 padding: 15px;
             }
             h1 {
                 font-size: 1.6rem;
             }
-            h3 {
+            h2 {
                 font-size: 1.2rem;
             }
             p {
                 font-size: 0.9rem;
             }
-            .menu-button, .nav-button {
+            .menu-button {
                 padding: 6px 12px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="time-header" id="time-header"></div>
     <div class="menu-bar">
         <div style="display: flex; align-items: center;">
             <img src="WSLF.png" alt="WSLF Logo">
@@ -291,17 +275,17 @@
         </div>
     </div>
 
-    <div class="menu-frame" id="menu-frame">
-        <h1>WSLF Radio NWS Product Puller</h1>
+    <div class="content-frame" id="menu-frame">
+        <h1>WSLF Radio NWS Regional Observations</h1>
         <p>Version Beta 1.0</p>
         <button class="menu-button" onclick="fetchRWR()">Fetch RWR</button>
     </div>
 
-    <div id="display-frame" style="display:none;"></div>
+    <div class="content-frame" id="display-frame" style="display:none;"></div>
 
     <script>
         async function fetchRWR() {
-            const url = 'https://forecast.weather.gov/product.php?site=psr&issuedby=nm&product=RWR';
+            const url = 'https://forecast.weather.gov/product.php?site=psr&issuedby=az&product=RWR';
             const headers = {
                 'User-Agent': 'Mozilla/5.0 (compatible; MyWeatherApp/1.0; +https://myappdomain.com)'
             };
@@ -318,16 +302,22 @@
                 const rawText = preTag.textContent;
                 const lines = rawText.split('\n');
                 const weatherData = [];
+                let timeLine = lines.find(line => line.includes('NATIONAL WEATHER SERVICE PHOENIX AZ'));
+                const timeMatch = timeLine.match(/(\d+)\s*(AM|PM)\s*MST/);
+                const time = timeMatch ? `${timeMatch[1]} ${timeMatch[2]}` : 'Unknown Time';
+                const dateLine = lines.find(line => line.includes('APR'));
+                const dateMatch = dateLine.match(/(\w+)\s+APR\s+(\d+)/);
+                const dayMap = { 'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday' };
+                const date = dateMatch ? `${dayMap[dateMatch[1].toUpperCase()]}, April ${dateMatch[2]}th` : 'Unknown Date';
 
                 lines.forEach(line => {
                     const parsed = parseWeatherLine(line);
                     if (parsed) {
-                        const speechText = formatWeatherForSpeech(parsed);
-                        weatherData.push({ raw: line, parsed, speech: speechText });
+                        weatherData.push(parsed);
                     }
                 });
 
-                displayWeather(weatherData);
+                displayWeather(weatherData, time, date);
             } catch (error) {
                 console.error('Fetch error: ', error);
                 alert('Error fetching RWR data: ' + error.message);
@@ -341,15 +331,14 @@
             if (tokens.length < 2) return null;
 
             const validSkyWx = [
-                'SUNNY', 'MOSUNNY', 'PTSUNNY', 'CLOUDY', 'MOCLOUDY', 'PTCLDY', 'FAIR', 'N/A', 'NOT', 'CLEAR', 
-                'TSTM', 'FOG', 'RAIN', 'SNOW', 'LGT RAIN', 'LGT SNOW', 'FLURRIES'
+                'SUNNY', 'MOSUNNY', 'PTSUNNY', 'CLOUDY', 'MOCLOUDY', 'PTCLDY', 'FAIR', 'N/A', 'NOT', 'CLEAR',
+                'TSTM', 'FOG', 'RAIN', 'SNOW', 'LGT RAIN', 'LGT SNOW', 'FLURRIES', 'DRIZZLE', 'HAZE'
             ];
 
             let cityEnd = 1;
             let skyWx = tokens[1];
             let skyWxOffset = 0;
 
-            // Check for multi-word cities first
             if (!validSkyWx.includes(tokens[1]) && tokens.length > 2) {
                 cityEnd = 2;
                 skyWx = tokens[2];
@@ -359,7 +348,6 @@
                 }
             }
 
-            // Check for two-word SKY/WX after city
             if (tokens[cityEnd] === 'LGT' && (tokens[cityEnd + 1] === 'RAIN' || tokens[cityEnd + 1] === 'SNOW')) {
                 skyWx = `${tokens[cityEnd]} ${tokens[cityEnd + 1]}`;
                 skyWxOffset = 1;
@@ -391,10 +379,6 @@
                 fields.pressure = null;
             }
 
-            console.log(`Raw: ${line}`);
-            console.log(`Tokens: ${tokens.join(' | ')}`);
-            console.log(`Parsed: city=${fields.city}, skyWx=${fields.skyWx}, temp=${fields.temp}, dp=${fields.dewPoint}, rh=${fields.rh}, wind=${fields.wind}, pres=${fields.pressure}`);
-
             return {
                 city: fields.city,
                 skyWx: fields.skyWx,
@@ -406,10 +390,47 @@
             };
         }
 
-        function formatWeatherForSpeech(data) {
-            if ((!data.temp && !data.dewPoint && !data.rh && !data.wind && !data.pressure) || data.skyWx === 'NOT AVBL') {
-                return `The report from ${data.city} was not available.`;
-            }
+        function displayWeather(weatherData, time, date) {
+            const cityNameMap = {
+                'Phoenix': 'Sky Harbor',
+                'Luke AFB': 'Luke Air Force Base',
+                'Scottsdale': 'Scottsdale Airport',
+                'Mesa-Falcon': 'Falcon Field',
+                'Mesa-Gateway': 'Mesa Gateway',
+                'Grand Canyon': 'The Grand Canyon',
+                'Davis-Monthan': 'Davis Monthan Air Force Base',
+                'Downtown L.A.': 'Downtown Los Angeles',
+                'L.A. Airport': 'Los Angeles Airport',
+                'El Centro NAS': 'El Centro'
+            };
+
+            const sections = {
+                phoenix: [],
+                southCentralAZ: [],
+                northernAZ: [],
+                southernAZ: [],
+                southernCA: [],
+                regional: []
+            };
+
+            weatherData.forEach(data => {
+                const displayCity = cityNameMap[data.city] || data.city;
+                data.displayCity = displayCity;
+
+                if (data.city === 'Phoenix') {
+                    sections.phoenix.push(data);
+                } else if (['Buckeye', 'Glendale', 'Luke AFB', 'Deer Valley', 'Scottsdale', 'Mesa-Falcon', 'Mesa-Gateway', 'Chandler', 'Casa Grande', 'Gila Bend'].includes(data.city)) {
+                    sections.southCentralAZ.push(data);
+                } else if (['Bullhead City', 'Kingman', 'Grand Canyon', 'Williams', 'Prescott', 'Flagstaff', 'Payson', 'Page', 'Winslow', 'Saint Johns', 'Window Rock', 'Show Low'].includes(data.city)) {
+                    sections.northernAZ.push(data);
+                } else if (['Tucson', 'Davis-Monthan', 'Ryan Field', 'Nogales', 'Sierra Vista', 'Douglas', 'Safford', 'Yuma'].includes(data.city)) {
+                    sections.southernAZ.push(data);
+                } else if (['Downtown L.A.', 'L.A. Airport', 'San Diego', 'Burbank', 'Ontario', 'Riverside', 'Palm Springs', 'El Centro NAS', 'Imperial', 'Blythe', 'Needles'].includes(data.city)) {
+                    sections.southernCA.push(data);
+                } else if (['Las Vegas', 'Salt Lake City', 'Albuquerque', 'El Paso'].includes(data.city)) {
+                    sections.regional.push(data);
+                }
+            });
 
             const skyWxMap = {
                 'SUNNY': 'It was sunny',
@@ -426,86 +447,101 @@
                 'SNOW': 'Snow was falling',
                 'LGT RAIN': 'Light rain was falling',
                 'LGT SNOW': 'Light snow was falling',
-                'FLURRIES': 'Snow flurries were reported'
+                'FLURRIES': 'Snow flurries were reported',
+                'DRIZZLE': 'Drizzle was falling',
+                'HAZE': 'Haze was reported'
             };
-            const skyWxText = skyWxMap[data.skyWx] || null;
 
-            const parts = [`At ${data.city}`];
-            if (skyWxText) parts.push(skyWxText.toLowerCase());
-
-            if (data.temp) parts.push(`the temperature was ${data.temp} degrees`);
-            if (data.dewPoint) parts.push(`dew point ${data.dewPoint}`);
-            if (data.rh) parts.push(`relative humidity ${data.rh} percent`);
-
-            if (data.wind) {
-                const windTrimmed = data.wind.trim();
-                if (windTrimmed === 'CALM') {
-                    parts.push('the wind was calm');
-                } else if (windTrimmed.startsWith('VRB')) {
-                    const speed = windTrimmed.replace('VRB', '').trim();
-                    parts.push(`the wind was variable at ${speed} miles an hour`);
-                } else if (windTrimmed !== 'MISG') {
-                    const windDirMap = {
-                        'N': 'north', 'S': 'south', 'E': 'east', 'W': 'west',
-                        'NE': 'northeast', 'NW': 'northwest', 'SE': 'southeast', 'SW': 'southwest'
-                    };
-                    const dirMatch = windTrimmed.match(/^[NESW]{1,2}/);
-                    const dir = dirMatch ? windDirMap[dirMatch[0]] : 'variable';
-                    const speedGusts = windTrimmed.replace(/^[NESW]{1,2}/, '').trim();
-                    const speed = speedGusts.includes('G') ? speedGusts.split('G')[0] : speedGusts;
-                    const gusts = speedGusts.includes('G') ? speedGusts.split('G')[1] : null;
-                    parts.push(`the wind was ${dir} at ${speed} miles an hour${gusts ? ', gusting to ' + gusts : ''}`);
+            let html = '';
+            const phoenixData = sections.phoenix[0];
+            if (phoenixData) {
+                let phoenixText = `Here is the ${time} observation for Phoenix, on ${date}. At Sky Harbor, ${skyWxMap[phoenixData.skyWx] || 'conditions were not specified'}.`;
+                if (phoenixData.temp) phoenixText += ` Temperature was ${phoenixData.temp} degrees`;
+                if (phoenixData.dewPoint) phoenixText += `, dewpoint ${phoenixData.dewPoint}`;
+                if (phoenixData.rh) phoenixText += `, relative humidity ${phoenixData.rh} percent`;
+                if (phoenixData.wind) {
+                    const windTrimmed = phoenixData.wind.trim();
+                    if (windTrimmed === 'CALM') phoenixText += `. Wind was calm`;
+                    else if (windTrimmed.startsWith('VRB')) phoenixText += `. Wind was variable at ${windTrimmed.replace('VRB', '')} miles an hour`;
+                    else {
+                        const dirMatch = windTrimmed.match(/^[NESW]{1,2}/);
+                        const dir = dirMatch ? {'N': 'north', 'S': 'south', 'E': 'east', 'W': 'west', 'NE': 'northeast', 'NW': 'northwest', 'SE': 'southeast', 'SW': 'southwest'}[dirMatch[0]] : 'variable';
+                        const speedGusts = windTrimmed.replace(/^[NESW]{1,2}/, '');
+                        const speed = speedGusts.includes('G') ? speedGusts.split('G')[0] : speedGusts;
+                        const gusts = speedGusts.includes('G') ? `, gusting to ${speedGusts.split('G')[1]}` : '';
+                        phoenixText += `. Wind was ${dir} at ${speed} miles an hour${gusts}`;
+                    }
                 }
+                if (phoenixData.pressure) {
+                    const trendMatch = phoenixData.pressure.match(/[FRS]$/);
+                    const pressureValue = trendMatch ? phoenixData.pressure.slice(0, -1) : phoenixData.pressure;
+                    const trendText = trendMatch ? { 'F': ' and falling', 'R': ' and rising', 'S': ' and steady' }[phoenixData.pressure.slice(-1)] : '';
+                    phoenixText += `. And the pressure was ${pressureValue} inches${trendText}`;
+                }
+                phoenixText += '.';
+                html += `<h2>Phoenix Observation</h2><p>${phoenixText}</p>`;
             }
 
-            if (data.pressure) {
-                const trendMatch = data.pressure.match(/[FRS]$/);
-                const pressureValue = trendMatch ? data.pressure.slice(0, -1) : data.pressure;
-                const trendText = { 'F': 'and falling', 'R': 'and rising', 'S': 'and steady' }[data.pressure.slice(-1)] || '';
-                parts.push(`the pressure was ${pressureValue} inches${trendText ? ', ' + trendText : ''}`);
+            function formatSection(sectionData, title) {
+                if (!sectionData.length) return '';
+
+                const skyWxTypes = [...new Set(sectionData.map(d => d.skyWx).filter(s => s !== 'NOT AVBL'))];
+                let sectionText = `${title}, `;
+
+                if (skyWxTypes.length === 0) {
+                    const tempOnly = sectionData.filter(d => d.temp && d.skyWx === 'NOT AVBL');
+                    const notAvbl = sectionData.filter(d => !d.temp && d.skyWx === 'NOT AVBL');
+                    if (tempOnly.length) {
+                        sectionText += `It was ${tempOnly.map((d, i) => `${d.temp} at ${d.displayCity}${i < tempOnly.length - 1 ? ', ' : ''}`).join('')}.`;
+                    }
+                    if (notAvbl.length) {
+                        sectionText += ` ${notAvbl.map(d => `At ${d.displayCity}, the weather conditions were not available`).join('. ')}.`;
+                    }
+                    return `<h2>${title}</h2><p>${sectionText}</p>`;
+                }
+
+                const normal = sectionData.filter(d => d.temp && d.skyWx !== 'NOT AVBL');
+                const noTemp = sectionData.filter(d => !d.temp && d.skyWx !== 'NOT AVBL');
+                const notAvbl = sectionData.filter(d => d.skyWx === 'NOT AVBL');
+
+                if (skyWxTypes.length === 1) {
+                    sectionText += `${skyWxMap[skyWxTypes[0]]}.`;
+                } else if (skyWxTypes.length === 2) {
+                    sectionText += `Skies ranged from ${skyWxMap[skyWxTypes[0]].toLowerCase().replace('it was ', '')} to ${skyWxMap[skyWxTypes[1]].toLowerCase().replace('it was ', '')}.`;
+                } else {
+                    sectionText = `${title}, `;
+                    normal.forEach((d, i) => {
+                        sectionText += `${skyWxMap[d.skyWx]}, with a temperature of ${d.temp} at ${d.displayCity}${i < normal.length - 1 ? '. ' : ''}`;
+                    });
+                    sectionText += '.';
+                }
+
+                if (normal.length && skyWxTypes.length <= 2) {
+                    sectionText += ` It was ${normal.map((d, i) => `${d.temp} at ${d.displayCity}${i < normal.length - 2 ? ', ' : i === normal.length - 2 ? ', and ' : ''}`).join('')}.`;
+                }
+                if (noTemp.length) {
+                    sectionText += ` ${noTemp.map(d => `At ${d.displayCity}, ${skyWxMap[d.skyWx].toLowerCase()}`).join('. ')}.`;
+                }
+                if (notAvbl.length) {
+                    sectionText += ` ${notAvbl.map(d => `At ${d.displayCity}, the weather conditions were not available`).join('. ')}.`;
+                }
+
+                return `<h2>${title}</h2><p>${sectionText}</p>`;
             }
 
-            return parts.join(', ') + '.';
-        }
+            html += formatSection(sections.southCentralAZ, 'Other Observations for South Central Arizona Including the Greater Phoenix Area');
+            html += formatSection(sections.northernAZ, 'Observations for Northern Arizona');
+            html += formatSection(sections.southernAZ, 'Observations for Southern Arizona');
+            html += formatSection(sections.southernCA, 'Observations for Southern California');
+            html += formatSection(sections.regional, 'Regional Observations');
 
-        function displayWeather(weatherData) {
-            let currentIndex = 0;
-
-            function showCurrent() {
-                const data = weatherData[currentIndex];
-                const displayFrame = document.getElementById('display-frame');
-                displayFrame.innerHTML = `
-                    <div class="warning-display">
-                        <h3>${data.parsed.city}</h3>
-                        <p><strong>Conditions:</strong> ${data.speech}</p>
-                        <p><strong>Raw Data:</strong> ${data.raw}</p>
-                        <div style="text-align: center;">
-                            <button class="nav-button" onclick="prevWeather()">🢀</button>
-                            <button class="nav-button" onclick="nextWeather()">🢂</button>
-                            <button class="nav-button" onclick="showMenu()">Back to Menu</button>
-                        </div>
-                    </div>
-                `;
-                displayFrame.style.display = 'block';
-                document.getElementById('menu-frame').style.display = 'none';
+            if (phoenixData && phoenixData.temp && phoenixData.skyWx !== 'NOT AVBL') {
+                html += `<h2>Recap</h2><p>Once again, at ${time} in Phoenix, under ${skyWxMap[phoenixData.skyWx].toLowerCase().replace('it was ', '')} skies, The Sky Harbor temperature was ${phoenixData.temp} degrees.</p>`;
             }
 
-            window.prevWeather = function() {
-                currentIndex = (currentIndex - 1 + weatherData.length) % weatherData.length;
-                showCurrent();
-            };
-
-            window.nextWeather = function() {
-                currentIndex = (currentIndex + 1) % weatherData.length;
-                showCurrent();
-            };
-
-            window.showMenu = function() {
-                document.getElementById('display-frame').style.display = 'none';
-                document.getElementById('menu-frame').style.display = 'block';
-            };
-
-            showCurrent();
+            document.getElementById('display-frame').innerHTML = html;
+            document.getElementById('display-frame').style.display = 'block';
+            document.getElementById('menu-frame').style.display = 'none';
         }
 
         const menuItemsContainer = document.querySelector('.menu-items');
