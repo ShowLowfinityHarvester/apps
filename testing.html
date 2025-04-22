@@ -515,7 +515,7 @@
             const phoenixData = sections.phoenix[0];
             if (phoenixData && phoenixData.skyWx !== 'NOT AVBL') {
                 speech.push(`Here is the ${time} observation for Phoenix, on ${date}.`);
-                let parts = [skyWxMap[phoenixData.skyWx] ? `At Sky Harbor, ${skyWxMap[phoenixData.skyWx]}` : 'At Sky Harbor, conditions were not specified'];
+                let parts = [skyWxMap[phoenixData.skyWx] ? `At Sky Harbor, ${skyWxMap[phoenixData.skyWx]}` : 'The report from sky harbor was not available.'];
                 if (phoenixData.temp) parts.push(`Temperature was ${phoenixData.temp} degrees`);
                 if (phoenixData.dewPoint) parts.push(`dewpoint ${phoenixData.dewPoint}`);
                 if (phoenixData.rh) parts.push(`relative humidity ${phoenixData.rh} percent`);
@@ -545,7 +545,7 @@
                     speech.push(`And the pressure was ${pressureValue} inches ${trendText}.`);
                 }
             } else {
-                speech.push(`Here is the ${time} observation for Phoenix, on ${date}. At Sky Harbor, the weather conditions were not available.`);
+                speech.push(`Here is the ${time} observation for Phoenix, on ${date}. The report from sky harbor was not available.`);
             }
 
             function formatSection(sectionData, sectionName) {
@@ -660,7 +660,7 @@
             // Phoenix Recap
             if (phoenixData && phoenixData.skyWx !== 'NOT AVBL' && phoenixData.temp) {
                 const skyText = phoenixData.skyWx.toLowerCase().replace('mocldy', 'mostly cloudy').replace('ptsunny', 'partly sunny');
-                speech.push(`Once again, at ${time} in Phoenix, under ${skyText} skies, Sky Harbor temperature was ${phoenixData.temp} degrees.`);
+                speech.push(`Once again, at ${time} in Phoenix, under ${skyText} skies. The Sky Harbor temperature was ${phoenixData.temp} degrees.`);
             }
 
             // Generate HTML
