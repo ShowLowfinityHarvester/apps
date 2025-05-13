@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:title" content="WSLF Radio - National Weather Alerts Map">
+  <meta property="og:description" content="View active NOAA weather alerts across the United States with real-time updates.">
+  <meta property="og:image" content="https://wslf-radio.neocities.org/WSLF_Transparent.png">
+  <title>WSLF Radio - National Weather Alerts Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #2a2a2a;
+      color: #f0f0f0;
+      line-height: 1.6;
+      overflow-x: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #3a3a3a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      width: 100%;
+      z-index: 1000;
+      transition: top 0.3s ease-in-out;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    .menu-bar img {
+      width: 50px;
+      margin-right: 20px;
+    }
+
+    .menu-items {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .menu-item {
+      margin-right: 20px;
+      cursor: pointer;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .menu-item:hover {
+      background-color: #fff;
+      color: #000;
+    }
+
+    .menu-item i {
+      margin-right: 8px;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-toggle {
+      margin-right: 20px;
+      cursor: pointer;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .dropdown-toggle:hover {
+      background-color: #fff;
+      color: #000;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background-color: #3a3a3a;
+      min-width: 200px;
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+    }
+
+    .dropdown:hover .dropdown-menu {
+      display: block;
+    }
+
+    .dropdown-item {
+      color: #e0e0e0;
+      padding: 8px 12px;
+      text-decoration: none;
+      display: block;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .dropdown-item:hover {
+      background-color: #fff;
+      color: #000;
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-top: 60px;
+      padding: 20px;
+    }
+
+    #map-container {
+      flex: 1;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.8s ease-out 0.2s forwards;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+      color: #e0e0e0;
+      font-size: 14px;
+      z-index: 1000;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      border: 1px solid #555;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        margin-top: 70px;
+        padding: 15px;
+      }
+
+      .menu-bar img {
+        width: 40px;
+      }
+
+      .menu-item, .dropdown-toggle {
+        margin-right: 15px;
+        font-size: 14px;
+        padding: 6px 10px;
+      }
+
+      .dropdown-menu {
+        min-width: 180px;
+      }
+
+      .legend {
+        bottom: 10px;
+        left: 10px;
+        font-size: 12px;
+        padding: 8px;
+      }
+
+      .legend-color {
+        width: 15px;
+        height: 15px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .menu-item, .dropdown-toggle {
+        margin-right: 10px;
+        font-size: 12px;
+        padding: 5px 8px;
+      }
+
+      .dropdown-menu {
+        min-width: 160px;
+      }
+
+      .legend {
+        font-size: 10px;
+        padding: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="menu-bar">
+    <div style="display: flex; align-items: center;">
+      <img src="WSLF.png" alt="WSLF Logo">
+      <div class="menu-items">
+        <div class="menu-item" onclick="window.location.href='about'"><i class="fas fa-info-circle"></i> About</div>
+        <div class="menu-item" onclick="window.location.href='https://www.wslfradio.org'"><i class="fas fa-music"></i> WSLF</div>
+        <div class="menu-item" onclick="window.location.href='https://www.wslfradio.org/kec94'"><i class="fas fa-cloud-sun"></i> KEC94</div>
+        <div class="menu-item" onclick="window.location.href='https://www.wslfradio.org/wwg41'"><i class="fas fa-cloud-sun"></i> WWG41</div>
+        <div class="menu-item" onclick="window.location.href='https://www.wslfradio.org/wxl87'"><i class="fas fa-cloud-sun"></i> WXL87</div>
+      </div>
+    </div>
+    <div class="dropdown">
+      <div class="dropdown-toggle"><i class="fas fa-bars"></i> More</div>
+      <div class="dropdown-menu" id="dropdown-menu">
+        <div class="dropdown-item static-item" onclick="window.location.href='https://www.wslfradio.org/status'"><i class="fas fa-signal"></i> Stream Status</div>
+        <div class="dropdown-item static-item" onclick="window.location.href='https://www.wslfradio.org/blog'"><i class="fas fa-blog"></i> Blog</div>
+        <div class="dropdown-item static-item" onclick="window.location.href='https://www.wslfradio.org/apps/testing'"><i class="fas fa-clock"></i> Coming Soon</div>
+        <div class="dropdown-item static-item" onclick="window.location.href='weather_alerts_map.html'"><i class="fas fa-map"></i> Weather Alerts Map</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <h1>NWS Alerts Map</h1>
+    <div id="map-container">
+      <div id="map"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background-color: #ff0000;"></div> Warning</div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #ffa500;"></div> Watch</div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #ffff00;"></div> Advisory</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize MapLibre with a national view
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://api.maptiler.com/maps/3d1b9c2b-3b90-4457-8310-fbd15c34d453/style.json?key=HKGa1lnD7ToUuzx5Ohp0',
+      center: [-98.5795, 39.8283], // Center of the U.S.
+      zoom: 3.5
+    });
+
+    // Add navigation controls
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+    // Color mapping for alert severity
+    const severityColors = {
+      'Extreme': '#ff0000',
+      'Severe': '#ff0000',
+      'Moderate': '#ffa500',
+      'Minor': '#ffff00',
+      'Unknown': '#d3d3d3'
+    };
+
+    // Load NWS alerts
+    map.on('load', () => {
+      fetch('https://api.weather.gov/alerts/active?status=actual')
+        .then(response => response.json())
+        .then(data => {
+          const alerts = data.features;
+
+          alerts.forEach((alert, index) => {
+            if (alert.geometry && (alert.geometry.type === 'Polygon' || alert.geometry.type === 'MultiPolygon')) {
+              const sourceId = `alert-source-${index}`;
+              const layerId = `alert-layer-${index}`;
+              const severity = alert.properties.severity || 'Unknown';
+              const color = severityColors[severity] || '#d3d3d3';
+
+              // Add alert geometry as GeoJSON source
+              map.addSource(sourceId, {
+                type: 'geojson',
+                data: {
+                  type: 'Feature',
+                  geometry: alert.geometry,
+                  properties: alert.properties
+                }
+              });
+
+              // Add fill layer
+              map.addLayer({
+                id: layerId,
+                type: 'fill',
+                source: sourceId,
+                paint: {
+                  'fill-color': color,
+                  'fill-opacity': 0.4
+                }
+              });
+
+              // Add outline
+              map.addLayer({
+                id: `${layerId}-outline`,
+                type: 'line',
+                source: sourceId,
+                paint: {
+                  'line-color': color,
+                  'line-width': 2
+                }
+              });
+
+              // Add click event for popup
+              map.on('click', layerId, (e) => {
+                const props = e.features[0].properties;
+                const popupContent = `
+                  <div style="font-family: 'Roboto', sans-serif; color: #f0f0f0; background: #3a3a3a; padding: 10px; border-radius: 6px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px;">${props.event}</h3>
+                    <p><strong>Severity:</strong> ${props.severity}</p>
+                    <p><strong>Area:</strong> ${props.areaDesc}</p>
+                    <p><strong>Effective:</strong> ${new Date(props.effective).toLocaleString()}</p>
+                    <p><strong>Expires:</strong> ${new Date(props.expires).toLocaleString()}</p>
+                    <p>${props.description}</p>
+                    <a href="${props.id}" style="color: #4e9af1;">More Details</a>
+                  </div>
+                `;
+
+                new maplibregl.Popup()
+                  .setLngLat(e.lngLat)
+                  .setHTML(popupContent)
+                  .addTo(map);
+              });
+
+              // Change cursor on hover
+              map.on('mouseenter', layerId, () => {
+                map.getCanvas().style.cursor = 'pointer';
+              });
+
+              map.on('mouseleave', layerId, () => {
+                map.getCanvas().style.cursor = '';
+              });
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching alerts:', error);
+        });
+    });
+
+    // Mobile menu adjustment
+    const menuItemsContainer = document.querySelector('.menu-items');
+    const dropdownMenu = document.querySelector('#dropdown-menu');
+    const menuItems = Array.from(document.querySelectorAll('.menu-item'));
+    const staticDropdownItems = Array.from(document.querySelectorAll('.dropdown-item.static-item'));
+    let movedItems = new Map();
+
+    function adjustMenuForMobile() {
+      const menuBarRect = document.querySelector('.menu-bar').getBoundingClientRect();
+      const dropdownRect = document.querySelector('.dropdown').getBoundingClientRect();
+      const maxVisibleX = menuBarRect.width - dropdownRect.width - 20;
+
+      movedItems.forEach((clone, onclick) => {
+        const originalItem = menuItems.find(item => item.getAttribute('onclick') === onclick);
+        if (originalItem) {
+          const cloneRect = clone.getBoundingClientRect();
+          if (cloneRect.right <= maxVisibleX && cloneRect.left >= 0) {
+            menuItemsContainer.appendChild(originalItem);
+            clone.remove();
+            movedItems.delete(onclick);
+          }
+        }
+      });
+
+      menuItems.forEach(item => {
+        const itemRect = item.getBoundingClientRect();
+        if (itemRect.right > maxVisibleX || itemRect.left < 0) {
+          const clone = item.cloneNode(true);
+          clone.classList.add('dropdown-item');
+          clone.classList.remove('menu-item');
+          dropdownMenu.appendChild(clone);
+          movedItems.set(item.getAttribute('onclick'), clone);
+          item.remove();
+        }
+      });
+    }
+
+    window.addEventListener('load', adjustMenuForMobile);
+    window.addEventListener('resize', adjustMenuForMobile);
+  </script>
+</body>
+</html>
