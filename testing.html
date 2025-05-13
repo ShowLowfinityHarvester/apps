@@ -283,38 +283,52 @@
                 const rawText = preTag.textContent;
                 console.log('Raw text length:', rawText.length);
                 const lines = rawText.split('\n').map(line => line.trim()).filter(line => line);
-                console.log('Total lines:', lines.length, 'Lines:', lines);
+                console.log('Total lines:', lines.length, 'First few lines:', lines.slice(0, 5));
                 const weatherData = [];
                 const validSkyWx = [
                     'SUNNY', 'MOSUNNY', 'PTSUNNY', 'CLOUDY', 'MOCLOUDY', 'PTCLDY', 'FAIR', 'CLEAR',
-                    'TSTM', 'FOG', 'RAIN', 'SNOW', 'FLURRIES', 'DRIZZLE', 'HAZE', 'LGT RAIN', 'LGT SNOW', 'MOCLDY', 'NOT'
+                    'TSTM', 'FOG', 'RAIN', 'SNOW', 'FLURRIES', 'DRIZZLE', 'HAZE', 'LGT RAIN', 'LGT SNOW', 'MOCLDY', 'NOT AVBL'
                 ];
 
                 // Parse time
-                let timeLine = lines.find(line => line.match(/\d{1,2}(?:0{0,2})?\s*(AM|PM)\s*MST/i));
+                let timeLine = lines.find(line => line.match(/\d{1,3}\s*(AM|PM)\s*MST/i));
                 console.log('Time line:', timeLine);
-                const timeMatch = timeLine ? timeLine.match(/(\d{1,2})(?:0{0,2})?\s*(AM|PM)\s*MST/i) : null;
+                const timeMatch = timeLine ? timeLine.match(/(\d{1,3})\s*(AM|PM)\s*MST/i) : null;
                 console.log('Time match:', timeMatch);
                 let time = 'Unknown Time';
                 if (timeMatch) {
-                    const hour = parseInt(timeMatch[1], 10) % 12 || 12;
-                    time = `${hour} ${timeMatch[2]} MST`;
+                    let hour = parseInt(timeMatch[1], 10);
+                    const period = timeMatch[2];
+                    if (hour >= 100) { // Handle 800, 900, 1000, etc.
+                        hour = hour % 1200; // Convert 800 to 8, 900 to 9
+                        if (hour === 0) hour = 12; // 1200 AM/PM
+                    }
+                    time = `${hour} ${period} MST`;
                 }
+                console.log('Parsed time:', time);
 
                 // Parse date
-                const dateLine = lines.find(line => line.includes('APR'));
+                let dateLine = lines.find(line => line.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d+\s+\d{4}/i));
                 console.log('Date line:', dateLine);
-                const dateMatch = dateLine ? dateLine.match(/(\w{3})\s+APR\s+(\d+)\s+(\d{4})/i) : null;
+                let dateMatch = dateLine ? dateLine.match(/(\w{3})\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s*(\d+)\s*(\d{4})/i) : null;
+                console.log('Date match:', dateMatch);
                 const dayMap = { 'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday' };
+                const monthMap = {
+                    'JAN': 'January', 'FEB': 'February', 'MAR': 'March', 'APR': 'April', 'MAY': 'May', 'JUN': 'June',
+                    'JUL': 'July', 'AUG': 'August', 'SEP': 'September', 'OCT': 'October', 'NOV': 'November', 'DEC': 'December'
+                };
                 let date = 'Unknown Date';
                 if (dateMatch) {
-                    const dayNum = parseInt(dateMatch[2], 10);
+                    const dayName = dateMatch[1].toUpperCase();
+                    const month = dateMatch[2].toUpperCase();
+                    const dayNum = parseInt(dateMatch[3], 10);
+                    const year = dateMatch[4];
                     const suffix = (dayNum % 10 === 1 && dayNum !== 11) ? 'st' :
                                    (dayNum % 10 === 2 && dayNum !== 12) ? 'nd' :
                                    (dayNum % 10 === 3 && dayNum !== 13) ? 'rd' : 'th';
-                    date = `${dayMap[dateMatch[1].toUpperCase()]}, April ${dayNum}${suffix}`;
+                    date = `${dayMap[dayName]}, ${monthMap[month]} ${dayNum}${suffix}`;
                 }
-                console.log('Parsed time:', time, 'Date:', date);
+                console.log('Parsed date:', date);
 
                 const parsedCities = new Set();
                 lines.forEach(line => {
@@ -322,12 +336,13 @@
                     const parsed = parseWeatherLine(line, validSkyWx);
                     if (parsed) {
                         console.log(`Parsed: ${line} ->`, parsed);
-                        const normalizedCity = parsed.city.toUpperCase();
+                        const normalizedCity = parsed.city.toUpperCase().replace(/\s+/g, ' ').trim();
                         if (!parsedCities.has(normalizedCity)) {
                             weatherData.push(parsed);
                             parsedCities.add(normalizedCity);
+                            console.log(`Added city: ${normalizedCity}`);
                         } else {
-                            console.log(`Duplicate city skipped: ${parsed.city}`);
+                            console.log(`Duplicate city skipped: ${parsed.city} (normalized: ${normalizedCity})`);
                         }
                     } else {
                         console.log(`Skipped: ${line}`);
@@ -359,7 +374,7 @@
         }
 
         function parseWeatherLine(line, validSkyWx) {
-            if (line.length < 10 || line.includes('6HR')) {
+            if (line.length < 10 || line.includes('6HR') || line.includes('$$') || line.includes('KEY') || line.includes('NOTE:') || line.match(/AZZ\d+/) || line.includes('ARIZONA HOURLY')) {
                 console.log(`Line filtered out: ${line}`);
                 return null;
             }
@@ -375,35 +390,9 @@
             let skyWx = null;
             let baseIndex = 0;
 
-            // Check for two-word skyWx
-            if (tokens.length > cityEnd + 1 && validSkyWx.includes(`${tokens[cityEnd]} ${tokens[cityEnd + 1]}`.toUpperCase())) {
-                skyWx = `${tokens[cityEnd]} ${tokens[cityEnd + 1]}`.toUpperCase();
-                baseIndex = cityEnd + 2;
-            } else {
-                skyWx = tokens[cityEnd].toUpperCase();
-                if (!validSkyWx.includes(skyWx) && tokens.length > cityEnd + 1) {
-                    cityEnd = 2;
-                    skyWx = tokens[cityEnd].toUpperCase();
-                    if (!validSkyWx.includes(skyWx) && tokens.length > cityEnd + 1) {
-                        cityEnd = 3;
-                        skyWx = tokens[cityEnd].toUpperCase();
-                    }
-                }
-                baseIndex = cityEnd + 1;
-            }
-
-            if (!validSkyWx.includes(skyWx)) {
-                console.log(`Invalid skyWx: ${skyWx} | Tokens: ${tokens} | Raw: ${line}`);
-                return null;
-            }
-
-            const city = tokens.slice(0, cityEnd).join(' ').replace('Afb', 'AFB').replace('Nas', 'NAS').replace(/\./g, '');
-            if (!city) {
-                console.log(`No city identified | Tokens: ${tokens} | Raw: ${line}`);
-                return null;
-            }
-
-            if (skyWx === 'NOT' && baseIndex < tokens.length && tokens[baseIndex] === 'AVBL') {
+            // Handle NOT AVBL explicitly
+            if (tokens.slice(1).join(' ').startsWith('NOT AVBL')) {
+                const city = tokens[0].replace('Afb', 'AFB').replace('Nas', 'NAS').replace(/\./g, '').trim();
                 console.log(`City ${city} marked as NOT AVBL`);
                 return {
                     city: city,
@@ -416,7 +405,38 @@
                 };
             }
 
-            if (tokens[baseIndex] === 'N/A' || tokens[baseIndex] === 'MISG') {
+            // Check for multi-word city names
+            if (tokens.length > 2 && !validSkyWx.includes(tokens[1].toUpperCase()) && !validSkyWx.includes(`${tokens[1]} ${tokens[2]}`.toUpperCase())) {
+                cityEnd = 2;
+                if (tokens.length > 3 && !validSkyWx.includes(tokens[2].toUpperCase()) && !validSkyWx.includes(`${tokens[2]} ${tokens[3]}`.toUpperCase())) {
+                    cityEnd = 3;
+                }
+            }
+
+            // Check for two-word skyWx
+            if (tokens.length > cityEnd + 1 && validSkyWx.includes(`${tokens[cityEnd]} ${tokens[cityEnd + 1]}`.toUpperCase())) {
+                skyWx = `${tokens[cityEnd]} ${tokens[cityEnd + 1]}`.toUpperCase();
+                baseIndex = cityEnd + 2;
+            } else {
+                skyWx = tokens[cityEnd].toUpperCase();
+                baseIndex = cityEnd + 1;
+            }
+
+            if (!validSkyWx.includes(skyWx)) {
+                console.log(`Invalid skyWx: ${skyWx} | Tokens: ${tokens} | Raw: ${line}`);
+                return null;
+            }
+
+            let city = tokens.slice(0, cityEnd).join(' ').replace('Afb', 'AFB').replace('Nas', 'NAS').replace(/\./g, '');
+            city = city.replace(/\s+/g, ' ').trim();
+            if (!city) {
+                console.log(`No city identified | Tokens: ${tokens} | Raw: ${line}`);
+                return null;
+            }
+
+            console.log(`Identified city: ${city}, skyWx: ${skyWx}, baseIndex: ${baseIndex}`);
+
+            if (baseIndex >= tokens.length || tokens[baseIndex] === 'N/A' || tokens[baseIndex] === 'MISG') {
                 console.log(`City ${city} marked as NOT AVBL due to N/A or MISG`);
                 return {
                     city: city,
@@ -429,7 +449,7 @@
                 };
             }
 
-            return {
+            const parsedData = {
                 city: city,
                 skyWx: skyWx,
                 temp: baseIndex < tokens.length && !isNaN(parseInt(tokens[baseIndex])) ? parseInt(tokens[baseIndex]) : null,
@@ -438,6 +458,9 @@
                 wind: baseIndex + 3 < tokens.length && tokens[baseIndex + 3] !== 'N/A' ? tokens[baseIndex + 3] : null,
                 pressure: baseIndex + 4 < tokens.length && tokens[baseIndex + 4] !== 'N/A' ? tokens[baseIndex + 4] : null
             };
+
+            console.log(`Parsed data for ${city}:`, parsedData);
+            return parsedData;
         }
 
         function displayWeather(weatherData, time, date) {
@@ -464,7 +487,7 @@
             };
 
             weatherData.forEach(data => {
-                const normalizedCity = data.city.toUpperCase();
+                const normalizedCity = data.city.toUpperCase().replace(/\s+/g, ' ').trim();
                 const displayCity = cityNameMap[normalizedCity] || data.city.split(/[- ]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
                 data.displayCity = displayCity;
 
@@ -484,6 +507,7 @@
             });
 
             console.log('Sections:', sections);
+            console.log('Phoenix section data:', sections.phoenix);
 
             const skyWxMap = {
                 'SUNNY': 'It was sunny',
@@ -507,15 +531,16 @@
                 'NOT AVBL': 'the weather conditions were not available'
             };
 
-            const rangeSkyWx = ['SUNNY', 'MOSUNNY', 'PTSUNNY', 'CLOUDY', 'MOCLOUDY', 'FAIR', 'CLEAR'];
+            const rangeSkyWx = ['SUNNY', 'MOSUNNY', 'PTSUNNY', 'CLOUDY', 'MOCLOUDY', 'PTCLDY', 'FAIR', 'CLEAR'];
 
             let speech = [];
 
             // Phoenix Section
-            const phoenixData = sections.phoenix[0];
-            if (phoenixData && phoenixData.skyWx !== 'NOT AVBL') {
+            const phoenixData = sections.phoenix.find(d => d.city.toUpperCase() === 'PHOENIX');
+            console.log('Phoenix data for display:', phoenixData);
+            if (phoenixData && phoenixData.skyWx && phoenixData.skyWx !== 'NOT AVBL' && phoenixData.temp != null) {
                 speech.push(`Here is the ${time} observation for Phoenix, on ${date}.`);
-                let parts = [skyWxMap[phoenixData.skyWx] ? `At Sky Harbor, ${skyWxMap[phoenixData.skyWx]}` : 'The report from sky harbor was not available.'];
+                let parts = [skyWxMap[phoenixData.skyWx] ? `At Sky Harbor, ${skyWxMap[phoenixData.skyWx].toLowerCase().replace('it was ', '')}` : 'At Sky Harbor, conditions were not specified'];
                 if (phoenixData.temp) parts.push(`Temperature was ${phoenixData.temp} degrees`);
                 if (phoenixData.dewPoint) parts.push(`dewpoint ${phoenixData.dewPoint}`);
                 if (phoenixData.rh) parts.push(`relative humidity ${phoenixData.rh} percent`);
@@ -524,6 +549,8 @@
                     const windTrimmed = phoenixData.wind.trim();
                     if (windTrimmed === 'CALM') {
                         speech.push('Wind was calm.');
+                    } else if (windTrimmed === 'MISG') {
+                        speech.push('Wind data was missing.');
                     } else if (windTrimmed.startsWith('VRB')) {
                         const speedGusts = windTrimmed.replace('VRB', '').trim();
                         const speed = speedGusts.includes('G') ? speedGusts.split('G')[0] : speedGusts;
@@ -545,7 +572,7 @@
                     speech.push(`And the pressure was ${pressureValue} inches ${trendText}.`);
                 }
             } else {
-                speech.push(`Here is the ${time} observation for Phoenix, on ${date}. The report from sky harbor was not available.`);
+                speech.push(`Here is the ${time} observation for Phoenix, on ${date}. At Sky Harbor, the weather conditions were not available.`);
             }
 
             function formatSection(sectionData, sectionName) {
@@ -554,20 +581,36 @@
                     return [];
                 }
 
+                console.log(`Formatting section: ${sectionName}, data:`, sectionData);
+
+                // Deduplicate cities within the section
+                const uniqueCities = new Set();
+                const dedupedData = sectionData.filter(d => {
+                    const normalizedCity = d.city.toUpperCase().replace(/\s+/g, ' ').trim();
+                    if (uniqueCities.has(normalizedCity)) {
+                        console.log(`Duplicate city in section ${sectionName}: ${d.city}`);
+                        return false;
+                    }
+                    uniqueCities.add(normalizedCity);
+                    return true;
+                });
+
                 const skyWxGroups = {};
-                sectionData.forEach(d => {
+                dedupedData.forEach(d => {
                     if (!skyWxGroups[d.skyWx]) skyWxGroups[d.skyWx] = [];
                     skyWxGroups[d.skyWx].push(d);
                 });
 
+                console.log(`Sky/Wx groups for ${sectionName}:`, skyWxGroups);
+
                 const notAvbl = skyWxGroups['NOT AVBL'] || [];
                 delete skyWxGroups['NOT AVBL'];
-                const sectionText = [sectionName];
+                const sectionText = [];
                 const isRegional = sectionName === 'Regional Observations';
 
                 // Handle single location
-                if (sectionData.length === 1) {
-                    const d = sectionData[0];
+                if (dedupedData.length === 1) {
+                    const d = dedupedData[0];
                     if (d.skyWx === 'NOT AVBL') {
                         sectionText.push(`At ${d.displayCity}, ${skyWxMap[d.skyWx]}.`);
                     } else {
@@ -583,6 +626,8 @@
                 }
 
                 const totalLocations = Object.values(normalGroups).reduce((sum, group) => sum + group.length, 0);
+                console.log(`Total locations for ${sectionName}: ${totalLocations}`);
+
                 if (totalLocations === 0 && notAvbl.length) {
                     sectionText.push(`At ${notAvbl[0].displayCity}, ${skyWxMap['NOT AVBL']}.`);
                     return sectionText;
@@ -592,8 +637,7 @@
                     if (group.length === 1) {
                         return useReported ? `${group[0].displayCity} reported ${group[0].temp}` : `${group[0].temp} at ${group[0].displayCity}`;
                     }
-                    const prefix = useReported ? '' : 'It was ';
-                    return prefix + `${group.slice(0, -1).map(d => `${d.temp} at ${d.displayCity}`).join(', ')}, and ${group[group.length - 1].temp} at ${group[group.length - 1].displayCity}`;
+                    return `${group.slice(0, -1).map(d => `${d.temp} at ${d.displayCity}`).join(', ')}, and ${group[group.length - 1].temp} at ${group[group.length - 1].displayCity}`;
                 }
 
                 function formatLocationListReported(group) {
@@ -606,31 +650,45 @@
 
                 if (totalLocations >= 7 && !isRegional) {
                     if (hasRange) {
-                        const skyWx1 = rangeTypes[0].toLowerCase().replace('mocldy', 'mostly cloudy').replace('ptsunny', 'partly sunny');
-                        const skyWx2 = rangeTypes[1].toLowerCase().replace('mocldy', 'mostly cloudy').replace('ptsunny', 'partly sunny');
-                        const rangeGroup = normalGroups[rangeTypes[0]].concat(normalGroups[rangeTypes[1]]);
-                        const half = Math.ceil(rangeGroup.length / 2);
+                        const sortedRangeTypes = rangeTypes.sort((a, b) => {
+                            const order = ['CLOUDY', 'MOCLOUDY', 'PTCLDY', 'PTSUNNY', 'MOSUNNY', 'SUNNY', 'CLEAR', 'FAIR'];
+                            return order.indexOf(a) - order.indexOf(b);
+                        });
+                        const skyWx1 = sortedRangeTypes[0].toLowerCase().replace('mocldy', 'mostly cloudy').replace('ptsunny', 'partly sunny');
+                        const skyWx2 = sortedRangeTypes[sortedRangeTypes.length - 1].toLowerCase().replace('mocldy', 'mostly cloudy').replace('ptsunny', 'partly sunny');
+                        const rangeGroup = Object.values(normalGroups).flat().filter((d, i, arr) => 
+                            arr.findIndex(x => x.displayCity === d.displayCity) === i);
+                        console.log(`Range group for ${sectionName}:`, rangeGroup);
+                        const half = Math.max(5, Math.ceil(rangeGroup.length / 2));
                         const firstHalf = rangeGroup.slice(0, half);
                         const secondHalf = rangeGroup.slice(half);
                         sectionText.push(`Skies ranged from ${skyWx1} to ${skyWx2}. ${formatLocationList(firstHalf)}.`);
-                        sectionText.push(`${formatLocationListReported(secondHalf)}.`);
+                        if (secondHalf.length) {
+                            sectionText.push(`${formatLocationListReported(secondHalf)}.`);
+                        }
                     } else {
-                        for (const skyWx in normalGroups) {
-                            const group = normalGroups[skyWx];
-                            const half = Math.ceil(group.length / 2);
-                            const firstHalf = group.slice(0, half);
-                            const secondHalf = group.slice(half);
-                            sectionText.push(`${skyWxMap[skyWx]}. ${formatLocationList(firstHalf)}.`);
+                        let dominantSkyWx = Object.keys(normalGroups).sort((a, b) => normalGroups[b].length - normalGroups[a].length)[0];
+                        if (['SUNNY', 'MOSUNNY', 'PTSUNNY'].includes(dominantSkyWx)) dominantSkyWx = 'MOSUNNY';
+                        console.log(`Dominant skyWx for ${sectionName}: ${dominantSkyWx}`);
+                        const allLocations = Object.values(normalGroups).flat().filter((d, i, arr) => 
+                            arr.findIndex(x => x.displayCity === d.displayCity) === i);
+                        console.log(`All locations for ${sectionName}:`, allLocations);
+                        const half = Math.max(6, Math.ceil(allLocations.length / 2));
+                        const firstHalf = allLocations.slice(0, half);
+                        const secondHalf = allLocations.slice(half);
+                        sectionText.push(`${skyWxMap[dominantSkyWx]}. ${formatLocationList(firstHalf)}.`);
+                        if (secondHalf.length) {
                             sectionText.push(`${formatLocationListReported(secondHalf)}.`);
                         }
                     }
                 } else {
                     for (const skyWx in normalGroups) {
-                        const group = normalGroups[skyWx];
+                        const group = normalGroups[skyWx].filter((d, i, arr) => 
+                            arr.findIndex(x => x.displayCity === d.displayCity) === i);
                         if (group.length === 1) {
                             sectionText.push(`At ${group[0].displayCity}, ${skyWxMap[skyWx].toLowerCase()}, with a temperature of ${group[0].temp}.`);
                         } else {
-                            sectionText.push(`${skyWxMap[skyWx]}, with a temperature of ${group.map(d => `${d.temp} at ${d.displayCity}`).join(', ')}${group.length > 1 ? ', and ' + `${group[group.length - 1].temp} at ${group[group.length - 1].displayCity}` : ''}.`);
+                            sectionText.push(`${skyWxMap[skyWx]}, with a temperature of ${formatLocationList(group)}.`);
                         }
                     }
                 }
@@ -658,37 +716,36 @@
             });
 
             // Phoenix Recap
-            if (phoenixData && phoenixData.skyWx !== 'NOT AVBL' && phoenixData.temp) {
-                const skyText = phoenixData.skyWx.toLowerCase().replace('mocldy', 'mostly cloudy').replace('ptsunny', 'partly sunny');
-                speech.push(`Once again, at ${time} in Phoenix, under ${skyText} skies. The Sky Harbor temperature was ${phoenixData.temp} degrees.`);
+            if (phoenixData && phoenixData.skyWx && phoenixData.skyWx !== 'NOT AVBL' && phoenixData.temp != null) {
+                const skyText = skyWxMap[phoenixData.skyWx].toLowerCase().replace('it was ', '');
+                speech.push(`Once again, at ${time} in Phoenix, under ${skyText} skies, the Sky Harbor temperature was ${phoenixData.temp} degrees.`);
             }
 
             // Generate HTML
             let html = '';
             let currentSection = null;
             speech.forEach(line => {
+                let newSection = null;
                 if (line.startsWith('Here is the')) {
-                    html += `<h2>Phoenix Observation</h2><p>${line}</p>`;
-                } else if (line.startsWith('Other Observations for South Central Arizona')) {
-                    currentSection = 'Other Observations for South Central Arizona Including the Greater Phoenix Area';
-                    html += `<h2>${currentSection}</h2><p>${line}</p>`;
-                } else if (line.startsWith('Observations for Northern Arizona')) {
-                    currentSection = 'Observations for Northern Arizona';
-                    html += `<h2>${currentSection}</h2><p>${line}</p>`;
-                } else if (line.startsWith('Observations for Southern Arizona')) {
-                    currentSection = 'Observations for Southern Arizona';
-                    html += `<h2>${currentSection}</h2><p>${line}</p>`;
-                } else if (line.startsWith('Observations for Southern California')) {
-                    currentSection = 'Observations for Southern California';
-                    html += `<h2>${currentSection}</h2><p>${line}</p>`;
-                } else if (line.startsWith('Regional Observations')) {
-                    currentSection = 'Regional Observations';
-                    html += `<h2>${currentSection}</h2><p>${line}</p>`;
+                    newSection = 'Phoenix Observation';
+                } else if (line.includes('Buckeye') || line.includes('Glendale') || line.includes('Luke') || line.includes('Deer Valley') || line.includes('Scottsdale') || line.includes('Falcon') || line.includes('Mesa') || line.includes('Chandler') || line.includes('Casa Grande') || line.includes('Gila Bend')) {
+                    newSection = 'Other Observations for South Central Arizona Including the Greater Phoenix Area';
+                } else if (line.includes('Bullhead City') || line.includes('Kingman') || line.includes('Grand Canyon') || line.includes('Williams') || line.includes('Prescott') || line.includes('Flagstaff') || line.includes('Payson') || line.includes('Page') || line.includes('Winslow') || line.includes('Saint Johns') || line.includes('Window Rock') || line.includes('Show Low')) {
+                    newSection = 'Observations for Northern Arizona';
+                } else if (line.includes('Tucson') || line.includes('Davis Monthan') || line.includes('Ryan Field') || line.includes('Nogales') || line.includes('Sierra Vista') || line.includes('Douglas') || line.includes('Safford') || line.includes('Yuma')) {
+                    newSection = 'Observations for Southern Arizona';
+                } else if (line.includes('Los Angeles') || line.includes('San Diego') || line.includes('Burbank') || line.includes('Ontario') || line.includes('Riverside') || line.includes('Palm Springs') || line.includes('El Centro') || line.includes('Blythe') || line.includes('Needles')) {
+                    newSection = 'Observations for Southern California';
+                } else if (line.includes('Las Vegas') || line.includes('Salt Lake City') || line.includes('Albuquerque') || line.includes('El Paso')) {
+                    newSection = 'Regional Observations';
                 } else if (line.startsWith('Once again')) {
-                    html += `<h2>Recap</h2><p>${line}</p>`;
-                } else {
-                    html += `<p>${line}</p>`;
+                    newSection = 'Recap';
                 }
+                if (newSection && newSection !== currentSection) {
+                    currentSection = newSection;
+                    html += `<h2>${currentSection}</h2>`;
+                }
+                html += `<p>${line}</p>`;
             });
 
             document.getElementById('display-frame').innerHTML = html;

@@ -36,6 +36,7 @@
         const targetFPS = 60;
         const frameInterval = 1000 / targetFPS;
         let isPageVisible = true;
+        let letterKeyMode = 'unique'; // 'unique' or 'letter'
 
         const colors = [
             'rgba(255, 99, 71, 0.8)',   // Red
@@ -85,6 +86,13 @@
                 if (type === 'fused' || type === 'massive') this.size = 10;
                 if (type === 'spark') this.size = 2;
                 if (type === 'trail') this.size = 3;
+                if (type === 'rain') this.size = 1.5;
+                if (type === 'smoke') this.size = 4;
+                if (type === 'laser') this.size = 2;
+                if (type === 'comet') this.size = 4;
+                if (type === 'fractal') this.size = 3; // Increased from 2 for visibility
+                if (type === 'nebula') this.size = 6;
+                if (type === 'zipper') this.size = 2;
                 this.opacity = 1;
                 this.effectType = effectType;
                 this.effectColor = effectColor || colors[Math.floor(Math.random() * colors.length)];
@@ -95,11 +103,15 @@
                 this.pulsePhase = Math.random() * Math.PI;
                 this.shakePhase = Math.random() * Math.PI * 2;
                 this.wavePhase = Math.random() * Math.PI;
+                this.twinklePhase = Math.random() * Math.PI;
+                this.bounceCount = type === 'bounce' ? 3 : 0;
+                this.fractalDepth = type === 'fractal' ? 1 : 0; // Simplified to 1 for U key
+                this.laserLength = type === 'laser' || type === 'zipper' ? 20 : (type === 'fractal' ? 30 : 0); // Increased for fractal
                 this.delayTimer = type === 'fused' || type === 'massive' ? 30 : (type === 'wave' ? 60 : 20);
                 this.fuseTransition = type === 'firework' && effectType === '2' ? 5 : 0;
                 this.isMerging = false;
-                this.waveRadius = type === 'wave' ? 10 : 0;
-                this.tailLength = type === 'trail' ? 10 : 0;
+                this.waveRadius = type === 'wave' || type === 'pulse' ? 10 : 0;
+                this.tailLength = type === 'trail' || type === 'comet' ? 10 : (type === 'zipper' ? 15 : 0);
 
                 if (type === 'background') {
                     this.speedX = Math.random() * 0.5 - 0.25;
@@ -107,8 +119,8 @@
                     this.life = Infinity;
                     this.color = 'rgba(17, 255, 0, 0.5)';
                 } else if (type === 'burst' || type === 'secondary' || type === 'tertiary') {
-                    this.life = type === 'tertiary' ? 60 : (type === 'secondary' ? 40 : 50);
-                    this.color = this.effectColor;
+                    this.life = type === 'tertiary' ? 60 : (type === 'secondary' ? 50 : 50); // Increased secondary life
+                    this.color = this.effectType === 'cascade' && type === 'secondary' ? 'rgba(255, 255, 255, 0.8)' : this.effectColor;
                     this.setExplosionSpeeds();
                 } else if (type === 'firework' || type === 'massive') {
                     if (effectType === '2') {
@@ -149,6 +161,47 @@
                     this.speedY = 0;
                     this.life = 60;
                     this.color = this.effectColor;
+                } else if (type === 'rain') {
+                    this.speedX = (Math.random() - 0.5) * 2;
+                    this.speedY = Math.random() * 3 + 2;
+                    this.life = 80;
+                    this.color = this.effectColor;
+                } else if (type === 'bounce') {
+                    this.speedX = (Math.random() - 0.5) * 6;
+                    this.speedY = (Math.random() - 0.5) * 6;
+                    this.life = 100;
+                    this.color = this.effectColor;
+                } else if (type === 'smoke') {
+                    this.speedX = (Math.random() - 0.5) * 1;
+                    this.speedY = (Math.random() - 0.5) * 1;
+                    this.life = 50;
+                    this.color = 'rgba(100, 100, 100, 0.5)';
+                } else if (type === 'laser') {
+                    this.speedX = Math.cos(this.angle) * 5;
+                    this.speedY = Math.sin(this.angle) * 5;
+                    this.life = 40;
+                    this.color = this.effectColor;
+                } else if (type === 'comet') {
+                    this.speedX = Math.cos(this.angle) * 4;
+                    this.speedY = Math.sin(this.angle) * 4;
+                    this.life = 60;
+                    this.color = this.effectColor;
+                    this.tailLength = 15;
+                } else if (type === 'fractal') {
+                    this.speedX = Math.cos(this.angle) * 3;
+                    this.speedY = Math.sin(this.angle) * 3;
+                    this.life = 50;
+                    this.color = this.effectColor;
+                } else if (type === 'nebula') {
+                    this.speedX = (Math.random() - 0.5) * 3;
+                    this.speedY = (Math.random() - 0.5) * 3;
+                    this.life = 50;
+                    this.color = this.effectColor;
+                } else if (type === 'zipper') {
+                    this.speedX = Math.cos(this.angle) * 4;
+                    this.speedY = Math.sin(this.angle) * 4;
+                    this.life = 40;
+                    this.color = this.effectColor;
                 }
             }
 
@@ -163,7 +216,7 @@
                     this.speedX = Math.cos(this.angle) * speed;
                     this.speedY = Math.sin(this.angle) * speed;
                 } else if (this.effectType === '3') {
-                    this.angle = Math.random() * Math.PI * 2;
+                    this.angle = Math.random() * Math.PI * 2; // Initialize angle
                     this.speedX = Math.cos(this.angle) * speed * 0.5;
                     this.speedY = Math.sin(this.angle) * speed * 0.5;
                 } else if (this.effectType === '4') {
@@ -218,7 +271,7 @@
                 } else if (this.effectType === 'wave') {
                     const angle = Math.random() * Math.PI * 2;
                     this.speedX = Math.cos(angle) * speed * 0.5;
-                    this.speedY = Math.sin(angle) * speed * 0.5;
+                    this.speedY = Math.sin(this.angle) * speed * 0.5;
                     this.wavePhase = Math.random() * Math.PI;
                 } else if (this.effectType === 'burst') {
                     const angle = Math.random() * Math.PI * 2;
@@ -228,14 +281,116 @@
                     const angle = Math.random() * Math.PI * 2;
                     this.speedX = Math.cos(angle) * speed * 0.5;
                     this.speedY = Math.sin(angle) * speed * 0.5;
-                } else if (this.effectType === 'space') {
-                    const subType = ['0', '2', '3', '4', '5', '6', '7', '8', '9', 'star', 'heart', 'wave', 'burst'][Math.floor(Math.random() * 13)];
-                    this.effectType = subType;
-                    this.setExplosionSpeeds();
+                } else if (this.effectType === 'laserburst') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'laserburst' && p.type === 'laser').length % 12) * (Math.PI / 6);
+                    this.speedX = Math.cos(this.angle) * speed;
+                    this.speedY = Math.sin(this.angle) * speed;
+                } else if (this.effectType === 'comet') {
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.speedX = Math.cos(this.angle) * speed * 0.8;
+                    this.speedY = Math.sin(this.angle) * speed * 0.8;
+                } else if (this.effectType === 'pulse') {
+                    this.speedX = 0;
+                    this.speedY = 0;
+                } else if (this.effectType === 'fractal') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'fractal' && p.type === 'fractal').length % 8) * (Math.PI / 4);
+                    this.speedX = Math.cos(this.angle) * speed * 0.5;
+                    this.speedY = Math.sin(this.angle) * speed * 0.5;
+                } else if (this.effectType === 'cascade') {
+                    this.speedX = (Math.random() - 0.5) * 4;
+                    this.speedY = (Math.random() - 0.5) * 4;
+                } else if (this.effectType === 'supernova') {
+                    const angle = Math.random() * Math.PI * 2;
+                    this.speedX = Math.cos(angle) * speed * 1.5;
+                    this.speedY = Math.sin(this.angle) * speed * 1.5;
+                } else if (this.effectType === 'fireball') {
+                    this.speedX = (Math.random() - 0.5) * 3;
+                    this.speedY = (Math.random() - 0.5) * 3;
+                } else if (this.effectType === 'rain') {
+                    this.speedX = (Math.random() - 0.5) * 2;
+                    this.speedY = Math.random() * 3 + 2;
+                } else if (this.effectType === 'bounce') {
+                    this.speedX = (Math.random() - 0.5) * 6;
+                    this.speedY = (Math.random() - 0.5) * 6;
+                } else if (this.effectType === 'vortex') {
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.speedX = Math.cos(this.angle) * speed * 0.7;
+                    this.speedY = Math.sin(this.angle) * speed * 0.7;
+                } else if (this.effectType === 'nova') {
+                    const angle = Math.random() * Math.PI * 2;
+                    this.speedX = Math.cos(angle) * speed * 1.2;
+                    this.speedY = Math.sin(this.angle) * speed * 1.2;
+                } else if (this.effectType === 'prism') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'prism' && p.type === 'burst').length % 6) * (Math.PI / 3);
+                    this.speedX = Math.cos(this.angle) * speed;
+                    this.speedY = Math.sin(this.angle) * speed;
+                } else if (this.effectType === 'meteor') {
+                    this.speedX = (Math.random() - 0.5) * 5;
+                    this.speedY = Math.random() * 3 + 2;
+                } else if (this.effectType === 'arc') {
+                    this.angle = Math.random() * Math.PI;
+                    this.speedX = Math.cos(this.angle) * speed * 0.6;
+                    this.speedY = Math.sin(this.angle) * speed * 0.6;
+                } else if (this.effectType === 'flare') {
+                    this.speedX = (Math.random() - 0.5) * 3;
+                    this.speedY = (Math.random() - 0.5) * 3;
+                } else if (this.effectType === 'laserbeam') {
+                    this.angle = Math.PI / 2; // Upward
+                    this.speedX = 0;
+                    this.speedY = -speed * 1.5;
+                } else if (this.effectType === 'laserfan') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'laserfan' && p.type === 'laser').length % 10) * (Math.PI / 20) + Math.PI;
+                    this.speedX = Math.cos(this.angle) * speed;
+                    this.speedY = Math.sin(this.angle) * speed;
+                } else if (this.effectType === 'lasersweep') {
+                    this.angle = 0; // Horizontal left
+                    this.speedX = -speed * 1.5;
+                    this.speedY = 0;
+                } else if (this.effectType === 'lasergrid') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'lasergrid' && p.type === 'laser').length % 8) * (Math.PI / 4);
+                    this.speedX = Math.cos(this.angle) * speed;
+                    this.speedY = Math.sin(this.angle) * speed;
+                } else if (this.effectType === 'nebula') {
+                    this.speedX = (Math.random() - 0.5) * 3;
+                    this.speedY = (Math.random() - 0.5) * 3;
+                } else if (this.effectType === 'zipper') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'zipper' && p.type === 'zipper').length % 2) * Math.PI / 2;
+                    this.speedX = Math.cos(this.angle + Math.sin(this.wavePhase) * Math.PI / 4) * speed;
+                    this.speedY = Math.sin(this.angle + Math.sin(this.wavePhase) * Math.PI / 4) * speed;
+                    this.wavePhase = Math.random() * Math.PI;
+                } else if (this.effectType === 'cross') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'cross' && p.type === 'burst').length % 4) * (Math.PI / 2);
+                    this.speedX = Math.cos(this.angle) * speed;
+                    this.speedY = Math.sin(this.angle) * speed;
+                } else if (this.effectType === 'fountain') {
+                    this.speedX = (Math.random() - 0.5) * 2;
+                    this.speedY = -speed * 1.5;
+                } else if (this.effectType === 'cluster') {
+                    const angle = Math.random() * Math.PI * 2;
+                    this.speedX = Math.cos(angle) * speed * 0.4;
+                    this.speedY = Math.sin(this.angle) * speed * 0.4;
+                } else if (this.effectType === 'swirl') {
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.speedX = Math.cos(this.angle) * speed * 0.6;
+                    this.speedY = Math.sin(this.angle) * speed * 0.6;
+                } else if (this.effectType === 'bloom') {
+                    const angle = Math.random() * Math.PI * 2;
+                    this.speedX = Math.cos(angle) * speed * 0.8;
+                    this.speedY = Math.sin(this.angle) * speed * 0.8;
+                } else if (this.effectType === 'phoenix') {
+                    this.speedX = (Math.random() - 0.5) * 4;
+                    this.speedY = (Math.random() - 0.5) * 4;
+                } else if (this.effectType === 'galaxy') {
+                    this.angle = (particlesArray.filter(p => p.effectType === 'galaxy' && p.type === 'burst').length % 8) * (Math.PI / 4);
+                    this.speedX = Math.cos(this.angle) * speed * 0.7;
+                    this.speedY = Math.sin(this.angle) * speed * 0.7;
+                } else if (this.effectType === 'sparkler') {
+                    this.speedX = (Math.random() - 0.5) * 3;
+                    this.speedY = (Math.random() - 0.5) * 3;
                 } else {
                     const angle = Math.random() * Math.PI * 2;
                     this.speedX = Math.cos(angle) * speed;
-                    this.speedY = Math.sin(angle) * speed;
+                    this.speedY = Math.sin(this.angle) * speed;
                 }
             }
 
@@ -245,7 +400,7 @@
                 }
 
                 if (this.type === 'burst' || this.type === 'secondary' || this.type === 'tertiary') {
-                    this.opacity = Math.max(0, this.life / (this.type === 'tertiary' ? 60 : (this.type === 'secondary' ? 40 : 50)));
+                    this.opacity = Math.max(0, this.life / (this.type === 'tertiary' ? 60 : (this.type === 'secondary' ? 50 : 50)));
                     if (this.opacity <= 0) return false;
                 }
 
@@ -275,18 +430,53 @@
                         let numBurstParticles = this.effectType === '1' ? 30 : (this.effectType === '7' ? 8 : 16);
                         if (this.effectType && this.effectType.startsWith('letter_')) numBurstParticles = 10;
                         if (this.effectType === 'star' || this.effectType === 'heart') numBurstParticles = 20;
-                        if (this.effectType === 'directional') numBurstParticles = 15;
                         if (['!', '$'].includes(this.effectType)) numBurstParticles = 20;
+                        if (this.effectType === 'rain') numBurstParticles = 30;
+                        if (this.effectType === 'cascade') numBurstParticles = 10;
+                        if (this.effectType === 'supernova') numBurstParticles = 50;
+                        if (this.effectType === 'laserburst' || this.effectType === 'prism') numBurstParticles = 12;
+                        if (this.effectType === 'comet' || this.effectType === 'vortex' || this.effectType === 'arc') numBurstParticles = 20;
+                        if (this.effectType === 'pulse' || this.effectType === 'nova') numBurstParticles = 15;
+                        if (this.effectType === 'fractal') numBurstParticles = 12; // Increased from 8
+                        if (this.effectType === 'meteor' || this.effectType === 'flare') numBurstParticles = 25;
+                        if (this.effectType === 'laserbeam' || this.effectType === 'laserfan' || this.effectType === 'lasersweep' || this.effectType === 'lasergrid') numBurstParticles = 10;
+                        if (this.effectType === 'nebula') numBurstParticles = 20;
+                        if (this.effectType === 'zipper') numBurstParticles = 12;
+                        if (this.effectType === 'cluster' || this.effectType === 'swirl' || this.effectType === 'bloom') numBurstParticles = 15;
+                        if (this.effectType === 'phoenix' || this.effectType === 'galaxy') numBurstParticles = 20;
+                        if (this.effectType === 'sparkler') numBurstParticles = 25;
                         for (let i = 0; i < numBurstParticles; i++) {
                             if (particlesArray.length >= maxParticles) break;
-                            const particleType = this.effectType === 'directional' ? 'trail' : 
-                                                ['!', '$'].includes(this.effectType) ? 'spark' : 'burst';
+                            const particleType = ['!', '$'].includes(this.effectType) ? 'spark' : 
+                                                this.effectType === 'rain' ? 'rain' : 
+                                                this.effectType === 'cascade' ? 'secondary' : 
+                                                this.effectType === 'fireball' ? (i < 15 ? 'burst' : 'smoke') : 
+                                                this.effectType === 'supernova' ? (i < 40 ? 'burst' : 'spark') : 
+                                                this.effectType === 'laserburst' ? 'laser' : 
+                                                this.effectType === 'comet' ? 'comet' : 
+                                                this.effectType === 'fractal' ? 'secondary' : // Secondary for multi-step
+                                                this.effectType === 'laserbeam' ? 'laser' : 
+                                                this.effectType === 'laserfan' ? 'laser' : 
+                                                this.effectType === 'lasersweep' ? 'laser' : 
+                                                this.effectType === 'lasergrid' ? 'laser' : 
+                                                this.effectType === 'nebula' ? (i < 15 ? 'nebula' : 'spark') : 
+                                                this.effectType === 'zipper' ? 'zipper' : 
+                                                this.effectType === 'sparkler' ? 'spark' : 'burst';
                             const explosionParticle = new Particle(particleType, this.x, this.y, this.effectType, this.effectColor, null, this.direction, this.letter);
                             particlesArray.push(explosionParticle);
                         }
                         if (this.effectType === '@') {
                             if (particlesArray.length < maxParticles) {
                                 particlesArray.push(new Particle('wave', this.x, this.y, 'wave', this.effectColor));
+                                for (let i = 0; i < 3; i++) {
+                                    if (particlesArray.length >= maxParticles) break;
+                                    particlesArray.push(new Particle('wave', this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, 'wave', this.effectColor));
+                                }
+                            }
+                        }
+                        if (this.effectType === 'supernova') {
+                            if (particlesArray.length < maxParticles) {
+                                particlesArray.push(new Particle('fused', this.x, this.y, 'supernova', this.effectColor));
                             }
                         }
                         return false;
@@ -366,6 +556,18 @@
                         this.wavePhase += 0.1;
                         this.speedX += Math.cos(this.wavePhase) * 0.5;
                         this.speedY += Math.sin(this.wavePhase) * 0.5;
+                    } else if (this.effectType === 'vortex') {
+                        this.angle += 0.2;
+                        this.speedX = Math.cos(this.angle) * (this.life / 50) * 4;
+                        this.speedY = Math.sin(this.angle) * (this.life / 50) * 4;
+                    } else if (this.effectType === 'arc') {
+                        this.angle += 0.1;
+                        this.speedX = Math.cos(this.angle) * 3;
+                        this.speedY = Math.sin(this.angle) * 3;
+                    } else if (this.effectType === 'swirl') {
+                        this.angle += 0.15;
+                        this.speedX = Math.cos(this.angle) * (this.life / 50) * 3;
+                        this.speedY = Math.sin(this.angle) * (this.life / 50) * 3;
                     }
                     this.speedY += 0.05;
                 }
@@ -380,11 +582,76 @@
                     }
                 }
 
+                if (this.type === 'secondary' && this.effectType === 'cascade' && this.life <= 20) {
+                    const subEffects = ['burst', 'star', 'wave', 'heart'];
+                    const subEffect = subEffects[Math.floor(Math.random() * subEffects.length)];
+                    for (let i = 0; i < 5; i++) {
+                        if (particlesArray.length >= maxParticles) break;
+                        const burstParticle = new Particle('burst', this.x, this.y, subEffect, this.effectColor);
+                        burstParticle.speedX = this.speedX + (Math.random() - 0.5) * 2;
+                        burstParticle.speedY = this.speedY + (Math.random() - 0.5) * 2;
+                        particlesArray.push(burstParticle);
+                    }
+                }
+
+                if (this.type === 'secondary' && this.effectType === 'laserburst' && this.life <= 20) {
+                    for (let i = 0; i < 6; i++) {
+                        if (particlesArray.length >= maxParticles) break;
+                        const laserParticle = new Particle('laser', this.x, this.y, 'laserburst', this.effectColor);
+                        laserParticle.angle = (i * Math.PI / 3) + Math.random() * 0.2;
+                        particlesArray.push(laserParticle);
+                    }
+                }
+
+                if (this.type === 'secondary' && this.effectType === 'pulse' && this.life <= 20) {
+                    for (let i = 0; i < 3; i++) {
+                        if (particlesArray.length >= maxParticles) break;
+                        const waveParticle = new Particle('wave', this.x, this.y, 'wave', this.effectColor);
+                        waveParticle.speedX = (Math.random() - 0.5) * 1;
+                        waveParticle.speedY = (Math.random() - 0.5) * 1;
+                        particlesArray.push(waveParticle);
+                    }
+                }
+
+                if (this.type === 'secondary' && this.effectType === 'fractal' && this.life <= 20) {
+                    for (let i = 0; i < 6; i++) { // Increased from 4 to 6
+                        if (particlesArray.length >= maxParticles) break;
+                        const fractalParticle = new Particle('fractal', this.x, this.y, 'fractal', this.effectColor);
+                        fractalParticle.angle = (i * Math.PI / 3) + Math.random() * 0.3; // Wider spread
+                        fractalParticle.fractalDepth = 1;
+                        particlesArray.push(fractalParticle);
+                    }
+                }
+
+                if (this.type === 'secondary' && this.effectType === 'comet' && this.life <= 20) {
+                    for (let i = 0; i < 5; i++) {
+                        if (particlesArray.length >= maxParticles) break;
+                        const cometParticle = new Particle('comet', this.x, this.y, 'comet', this.effectColor);
+                        cometParticle.angle = (i * 2 * Math.PI / 5) + Math.random() * 0.2;
+                        particlesArray.push(cometParticle);
+                    }
+                }
+
+                if (this.type === 'secondary' && this.effectType === 'sparkler' && this.life <= 20) {
+                    for (let i = 0; i < 8; i++) {
+                        if (particlesArray.length >= maxParticles) break;
+                        const sparkParticle = new Particle('spark', this.x, this.y, '!', this.effectColor);
+                        sparkParticle.speedX = (Math.random() - 0.5) * 6;
+                        sparkParticle.speedY = (Math.random() - 0.5) * 6;
+                        particlesArray.push(sparkParticle);
+                    }
+                }
+
                 if (this.type === 'secondary' || this.type === 'tertiary') {
                     this.speedY += 0.05;
                 }
 
-                if (this.type === 'spark') {
+                if (this.type === 'spark' && this.effectType === '!') {
+                    this.twinklePhase += 0.3;
+                    this.size = 2 * (1 + 0.5 * Math.sin(this.twinklePhase));
+                    this.opacity = this.life / 40;
+                    if (this.life <= 0) return false;
+                } else if (this.type === 'spark') {
                     this.opacity = this.life / 40;
                     if (this.life <= 0) return false;
                 }
@@ -394,10 +661,82 @@
                     if (this.life <= 0) return false;
                 }
 
-                if (this.type === 'wave') {
+                if (this.type === 'wave' || this.type === 'pulse') {
                     this.waveRadius += 2;
                     this.opacity = this.life / 60;
                     if (this.life <= 0) return false;
+                }
+
+                if (this.type === 'rain') {
+                    this.speedY += 0.1;
+                    this.opacity = this.life / 80;
+                    if (this.life <= 0) return false;
+                }
+
+                if (this.type === 'bounce') {
+                    if (this.x < this.size || this.x > canvas.width - this.size) {
+                        this.speedX *= -0.8;
+                        this.bounceCount--;
+                        this.x = Math.max(this.size, Math.min(canvas.width - this.size, this.x));
+                    }
+                    if (this.y < this.size || this.y > canvas.height - this.size) {
+                        this.speedY *= -0.8;
+                        this.bounceCount--;
+                        this.y = Math.max(this.size, Math.min(canvas.height - this.size, this.y));
+                    }
+                    this.opacity = this.life / 100;
+                    if (this.life <= 0 || this.bounceCount <= 0) return false;
+                }
+
+                if (this.type === 'smoke') {
+                    this.size += 0.2;
+                    this.opacity = this.life / 50;
+                    if (this.life <= 0) return false;
+                }
+
+                if (this.type === 'laser' || this.type === 'zipper') {
+                    this.wavePhase += 0.2;
+                    if (this.effectType === 'zipper') {
+                        this.angle += Math.sin(this.wavePhase) * 0.3;
+                        this.speedX = Math.cos(this.angle) * 4;
+                        this.speedY = Math.sin(this.angle) * 4;
+                    }
+                    this.opacity = this.life / 40;
+                    if (this.life <= 0) return false;
+                }
+
+                if (this.type === 'comet') {
+                    this.opacity = this.life / 60;
+                    if (this.life <= 0) return false;
+                }
+
+                if (this.type === 'fractal' && this.life <= 30 && this.fractalDepth >= 1) {
+                    for (let i = 0; i < 4; i++) {
+                        if (particlesArray.length >= maxParticles) break;
+                        const fractalParticle = new Particle('fractal', this.x, this.y, 'fractal', this.effectColor);
+                        fractalParticle.angle = this.angle + (i * Math.PI / 2) + Math.random() * 0.2;
+                        fractalParticle.fractalDepth = this.fractalDepth - 1;
+                        fractalParticle.speedX = Math.cos(fractalParticle.angle) * 2;
+                        fractalParticle.speedY = Math.sin(fractalParticle.angle) * 2;
+                        particlesArray.push(fractalParticle);
+                    }
+                }
+
+                if (this.type === 'fractal') {
+                    this.opacity = this.life / 50;
+                    if (this.life <= 0) return false;
+                }
+
+                if (this.type === 'nebula') {
+                    this.size += 0.1;
+                    this.opacity = this.life / 50;
+                    if (this.life <= 0) return false;
+                }
+
+                if (this.type === 'burst' && this.effectType === 'pulse') {
+                    this.waveRadius += 1;
+                    this.size = 10 * (1 + 0.5 * Math.sin(this.wavePhase));
+                    this.wavePhase += 0.2;
                 }
 
                 this.x += this.speedX;
@@ -418,18 +757,34 @@
                     ctx.font = '20px Roboto';
                     ctx.fillStyle = this.color;
                     ctx.fillText(this.letter, this.x, this.y);
-                } else if (this.type === 'wave') {
+                } else if (this.type === 'wave' || this.type === 'pulse') {
                     ctx.beginPath();
                     ctx.arc(this.x, this.y, this.waveRadius, 0, Math.PI * 2);
                     ctx.strokeStyle = this.color;
                     ctx.lineWidth = 2;
                     ctx.stroke();
-                } else if (this.type === 'trail') {
+                } else if (this.type === 'trail' || this.type === 'comet') {
                     ctx.beginPath();
                     ctx.moveTo(this.x, this.y);
                     const tailX = this.x - this.speedX * this.tailLength;
                     const tailY = this.y - this.speedY * this.tailLength;
                     ctx.lineTo(tailX, tailY);
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = this.size;
+                    ctx.stroke();
+                } else if (this.type === 'rain') {
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x, this.y + 10);
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = this.size;
+                    ctx.stroke();
+                } else if (this.type === 'laser' || this.type === 'fractal' || this.type === 'zipper') {
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    const endX = this.x + Math.cos(this.angle) * this.laserLength;
+                    const endY = this.y + Math.sin(this.angle) * this.laserLength;
+                    ctx.lineTo(endX, endY);
                     ctx.strokeStyle = this.color;
                     ctx.lineWidth = this.size;
                     ctx.stroke();
@@ -469,6 +824,12 @@
             const key = event.key ? event.key.toLowerCase() : '';
             const keyCode = event.keyCode;
             const bottomY = canvas.height;
+            const isShift = event.shiftKey;
+
+            if (key === 'shift') {
+                letterKeyMode = letterKeyMode === 'unique' ? 'letter' : 'unique';
+                return;
+            }
 
             if (keyCode >= 48 && keyCode <= 57) {
                 const number = String.fromCharCode(keyCode);
@@ -523,70 +884,229 @@
                 return;
             }
 
-            if (/^[a-z]$/.test(key)) {
-                for (let i = 0; i < 3; i++) {
-                    if (particlesArray.length >= maxParticles) break;
-                    const randomX = Math.random() * canvas.width;
-                    particlesArray.push(new Particle('firework', randomX, bottomY, `letter_${key.toUpperCase()}`, null, null, null, key.toUpperCase()));
-                }
-                return;
-            }
-
-            if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
-                for (let i = 0; i < 3; i++) {
-                    if (particlesArray.length >= maxParticles) break;
-                    const randomX = Math.random() * canvas.width;
-                    particlesArray.push(new Particle('firework', randomX, bottomY, 'directional', null, null, key.replace('arrow', '')));
-                }
-                return;
-            }
-
             let effectType;
             let numFireworks = 3;
-            switch (key) {
-                case '!': effectType = '!'; break; // Sparks
-                case '@': effectType = '@'; break; // Wave
-                case '#': effectType = '6'; break; // Ring
-                case '$': effectType = '$'; break; // Sparks
-                case '%': effectType = 'wave'; break;
-                case '^': effectType = '3'; break; // Spiral
-                case '&': effectType = '5'; break; // Pulsing
-                case '*': effectType = 'star'; break;
-                case '(': effectType = 'heart'; break;
-                case ')': effectType = 'heart'; break;
-                case '-': effectType = '8'; break; // Cross
-                case '=': effectType = '6'; break; // Ring
-                case '+': effectType = '8'; break; // Cross
-                case '[': effectType = 'burst'; break;
-                case ']': effectType = 'burst'; break;
-                case '{': effectType = '3'; break; // Spiral
-                case '}': effectType = '3'; break; // Spiral
-                case ';': effectType = '9'; break; // Fountain
-                case ':': effectType = '9'; break; // Fountain
-                case '\'': effectType = 'star'; break;
-                case '"': effectType = 'star'; break;
-                case ',': effectType = 'wave'; break;
-                case '.': effectType = 'burst'; break;
-                case '/': effectType = '8'; break; // Cross
-                case '\\': effectType = '8'; break; // Cross
-                case '`': effectType = 'star'; break;
-                case 'f1':
-                case 'f2':
-                case 'f3':
-                case 'f4':
-                case 'f5':
-                case 'f6':
-                case 'f7':
-                case 'f8':
-                case 'f9':
-                case 'f10':
-                case 'f11':
-                case 'f12':
-                    effectType = 'colorburst';
-                    numFireworks = parseInt(key.slice(1)) % 5 + 1;
-                    break;
-                default:
-                    effectType = 'burst';
+            if (/^[a-z]$/.test(key) && letterKeyMode === 'letter') {
+                effectType = `letter_${key.toUpperCase()}`;
+                numFireworks = 3;
+            } else {
+                switch (key) {
+                    case 'a':
+                        effectType = 'laserburst'; // Balls to lasers
+                        numFireworks = 2;
+                        break;
+                    case 'b':
+                        effectType = 'comet'; // Comet with glowing tail
+                        numFireworks = 3;
+                        break;
+                    case 'c':
+                        effectType = 'cascade'; // White balls to random fireworks
+                        numFireworks = 2;
+                        break;
+                    case 'd':
+                        effectType = 'sparkler'; // Balls to glitter
+                        numFireworks = 2;
+                        break;
+                    case 'e':
+                        effectType = 'nebula'; // Cloud-like burst with sparks
+                        numFireworks = 3;
+                        break;
+                    case 'f':
+                        effectType = 'fireball'; // Fiery burst with smoke
+                        numFireworks = 3;
+                        break;
+                    case 'g':
+                        effectType = 'vortex'; // Swirling spiral
+                        numFireworks = 3;
+                        break;
+                    case 'h':
+                        effectType = 'nova'; // Bright, expanding burst
+                        numFireworks = 2;
+                        break;
+                    case 'i':
+                        effectType = 'pulse'; // Balls to waves
+                        numFireworks = 2;
+                        break;
+                    case 'j':
+                        effectType = 'meteor'; // Falling meteor with trail
+                        numFireworks = 3;
+                        break;
+                    case 'k':
+                        effectType = 'prism'; // Hexagonal color burst
+                        numFireworks = 2;
+                        break;
+                    case 'l':
+                        effectType = 'arc'; // Curved particle arcs
+                        numFireworks = 3;
+                        break;
+                    case 'm':
+                        effectType = 'comet'; // Balls to comets
+                        numFireworks = 2;
+                        break;
+                    case 'n':
+                        effectType = 'burst'; // Standard burst
+                        numFireworks = 3;
+                        break;
+                    case 'o':
+                        effectType = 'wave'; // Expanding wave
+                        numFireworks = 2;
+                        break;
+                    case 'p':
+                        effectType = 'star'; // Star-shaped burst
+                        numFireworks = 2;
+                        break;
+                    case 'q':
+                        effectType = 'heart'; // Heart-shaped burst
+                        numFireworks = 2;
+                        break;
+                    case 'r':
+                        effectType = 'rain'; // Rain shower
+                        numFireworks = 3;
+                        break;
+                    case 's':
+                        effectType = 'supernova'; // Massive explosion with core
+                        numFireworks = 2;
+                        break;
+                    case 't':
+                        effectType = 'cross'; // Cross-shaped burst
+                        numFireworks = 2;
+                        break;
+                    case 'u':
+                        effectType = 'fractal'; // Balls to fractals
+                        numFireworks = 2;
+                        break;
+                    case 'v':
+                        effectType = 'fountain'; // Upward fountain
+                        numFireworks = 3;
+                        break;
+                    case 'w':
+                        effectType = 'cluster'; // Tight particle cluster
+                        numFireworks = 3;
+                        break;
+                    case 'x':
+                        effectType = 'swirl'; // Tight swirling burst
+                        numFireworks = 3;
+                        break;
+                    case 'y':
+                        effectType = 'bloom'; // Flower-like burst
+                        numFireworks = 2;
+                        break;
+                    case 'z':
+                        effectType = 'zipper'; // Zigzag laser pattern
+                        numFireworks = 3;
+                        break;
+                    case 'arrowup':
+                        effectType = 'laserbeam'; // Vertical laser beam
+                        numFireworks = 2;
+                        break;
+                    case 'arrowdown':
+                        effectType = 'laserfan'; // Downward laser fan
+                        numFireworks = 2;
+                        break;
+                    case 'arrowleft':
+                        effectType = 'lasersweep'; // Horizontal laser sweep
+                        numFireworks = 2;
+                        break;
+                    case 'arrowright':
+                        effectType = 'lasergrid'; // Laser crosshatch
+                        numFireworks = 2;
+                        break;
+                    case '!':
+                        effectType = '!'; // Twinkling sparks
+                        break;
+                    case '@':
+                        effectType = '@'; // Wave with ripples
+                        break;
+                    case '#':
+                        effectType = '6'; // Ring
+                        break;
+                    case '$':
+                        effectType = '$'; // Twinkling sparks
+                        break;
+                    case '%':
+                        effectType = 'wave';
+                        break;
+                    case '^':
+                        effectType = '3'; // Spiral
+                        break;
+                    case '&':
+                        effectType = '5'; // Pulsing
+                        break;
+                    case '*':
+                        effectType = 'star';
+                        break;
+                    case '(':
+                        effectType = 'heart';
+                        break;
+                    case ')':
+                        effectType = 'heart';
+                        break;
+                    case '-':
+                        effectType = '8'; // Cross
+                        break;
+                    case '=':
+                        effectType = '6'; // Ring
+                        break;
+                    case '+':
+                        effectType = '8'; // Cross
+                        break;
+                    case '[':
+                        effectType = 'burst';
+                        break;
+                    case ']':
+                        effectType = 'burst';
+                        break;
+                    case '{':
+                        effectType = '3'; // Spiral
+                        break;
+                    case '}':
+                        effectType = '3'; // Spiral
+                        break;
+                    case ';':
+                        effectType = '9'; // Fountain
+                        break;
+                    case ':':
+                        effectType = '9'; // Fountain
+                        break;
+                    case '\'':
+                        effectType = 'star';
+                        break;
+                    case '"':
+                        effectType = 'star';
+                        break;
+                    case ',':
+                        effectType = 'wave';
+                        break;
+                    case '.':
+                        effectType = 'burst';
+                break;
+                    case '/':
+                        effectType = '8'; // Cross
+                        break;
+                    case '\\':
+                        effectType = '8'; // Cross
+                        break;
+                    case '`':
+                        effectType = 'star';
+                        break;
+                    case 'f1':
+                    case 'f2':
+                    case 'f3':
+                    case 'f4':
+                    case 'f5':
+                    case 'f6':
+                    case 'f7':
+                    case 'f8':
+                    case 'f9':
+                    case 'f10':
+                    case 'f11':
+                    case 'f12':
+                        effectType = 'colorburst';
+                        numFireworks = parseInt(key.slice(1)) % 5 + 1;
+                        break;
+                    default:
+                        effectType = 'burst';
+                }
             }
 
             const colorIndex = typeof key === 'string' && key.startsWith('f') && key.length > 1 ? (parseInt(key.slice(1)) - 1) % colors.length : null;
@@ -594,7 +1114,7 @@
             for (let i = 0; i < numFireworks; i++) {
                 if (particlesArray.length >= maxParticles) break;
                 const randomX = Math.random() * canvas.width;
-                particlesArray.push(new Particle('firework', randomX, bottomY, effectType, effectColor));
+                particlesArray.push(new Particle('firework', randomX, bottomY, effectType, effectColor, null, null, effectType.startsWith('letter_') ? key.toUpperCase() : null));
             }
         });
 
@@ -672,4 +1192,4 @@
         });
     </script>
 </body>
-</html>                                                                                                                                                                                                                                                             
+</html>
