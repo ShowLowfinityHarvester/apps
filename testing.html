@@ -540,7 +540,7 @@
             console.log('Phoenix data for display:', phoenixData);
             if (phoenixData && phoenixData.skyWx && phoenixData.skyWx !== 'NOT AVBL' && phoenixData.temp != null) {
                 speech.push(`Here is the ${time} observation for Phoenix, on ${date}.`);
-                let parts = [skyWxMap[phoenixData.skyWx] ? `At Sky Harbor, ${skyWxMap[phoenixData.skyWx].toLowerCase().replace('it was ', '')}` : 'At Sky Harbor, conditions were not specified'];
+                let parts = [skyWxMap[phoenixData.skyWx] ? `At Sky Harbor, ${skyWxMap[phoenixData.skyWx]}` : 'At Sky Harbor, conditions were not specified'];
                 if (phoenixData.temp) parts.push(`Temperature was ${phoenixData.temp} degrees`);
                 if (phoenixData.dewPoint) parts.push(`dewpoint ${phoenixData.dewPoint}`);
                 if (phoenixData.rh) parts.push(`relative humidity ${phoenixData.rh} percent`);
@@ -572,7 +572,7 @@
                     speech.push(`And the pressure was ${pressureValue} inches ${trendText}.`);
                 }
             } else {
-                speech.push(`Here is the ${time} observation for Phoenix, on ${date}. At Sky Harbor, the weather conditions were not available.`);
+                speech.push(`Here is the ${time} observation for Phoenix, on ${date}. The report from Sky Harbor was not available.`);
             }
 
             function formatSection(sectionData, sectionName) {
@@ -662,7 +662,7 @@
                         const half = Math.max(5, Math.ceil(rangeGroup.length / 2));
                         const firstHalf = rangeGroup.slice(0, half);
                         const secondHalf = rangeGroup.slice(half);
-                        sectionText.push(`Skies ranged from ${skyWx1} to ${skyWx2}. ${formatLocationList(firstHalf)}.`);
+                        sectionText.push(`Skies ranged from ${skyWx1} to ${skyWx2}. It was ${formatLocationList(firstHalf)}.`);
                         if (secondHalf.length) {
                             sectionText.push(`${formatLocationListReported(secondHalf)}.`);
                         }
