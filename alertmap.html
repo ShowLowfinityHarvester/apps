@@ -65,6 +65,8 @@
       border-radius: 6px;
       transition: background-color 0.3s ease, color 0.3s ease;
       white-space: nowrap;
+      background-color: #4a4a4a;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .menu-item:hover {
@@ -90,6 +92,8 @@
       padding: 8px 12px;
       border-radius: 6px;
       transition: background-color 0.3s ease, color 0.3s ease;
+      background-color: #4a4a4a;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .dropdown-toggle:hover {
@@ -176,6 +180,153 @@
       border: 1px solid #555;
     }
 
+    /* Updated Popup Styling */
+    .maplibregl-popup-content {
+      background: #3a3a3a;
+      color: #f0f0f0;
+      border-radius: 6px;
+      padding: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      max-width: 350px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .maplibregl-popup-tip {
+      border-top-color: #3a3a3a;
+    }
+
+    .popup-content h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    .popup-content p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #e0e0e0;
+    }
+
+    .popup-content strong {
+      color: #ffffff;
+    }
+
+    .more-details-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #4e9af1;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .more-details-btn:hover {
+      background-color: #3b82f6;
+    }
+
+    /* Full-Screen Popup Styling */
+    .full-screen-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      background-color: #3a3a3a;
+      color: #f0f0f0;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      padding: 20px;
+      overflow-y: auto;
+      opacity: 0;
+      animation: fadeInUp 0.3s forwards;
+    }
+
+    .full-screen-popup.show {
+      display: block;
+    }
+
+    .full-screen-popup .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #555;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .full-screen-popup .popup-header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    .full-screen-popup .close-btn {
+      background: none;
+      border: none;
+      color: #e0e0e0;
+      font-size: 24px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .full-screen-popup .close-btn:hover {
+      color: #fff;
+    }
+
+    .full-screen-popup .alert-section {
+      margin-bottom: 20px;
+    }
+
+    .full-screen-popup .alert-section h3 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .full-screen-popup .alert-section p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e0e0e0;
+      margin: 0;
+    }
+
+    /* Popup Overlay */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1999;
+      opacity: 0;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    .popup-overlay.show {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
     @keyframes fadeInUp {
       to {
         opacity: 1;
@@ -213,6 +364,24 @@
       .legend-color {
         width: 15px;
         height: 15px;
+      }
+
+      .full-screen-popup {
+        width: 95%;
+        max-height: 85vh;
+        padding: 15px;
+      }
+
+      .full-screen-popup .popup-header h2 {
+        font-size: 18px;
+      }
+
+      .full-screen-popup .alert-section h3 {
+        font-size: 16px;
+      }
+
+      .full-screen-popup .alert-section p {
+        font-size: 13px;
       }
     }
 
@@ -266,6 +435,22 @@
         <div class="legend-item"><div class="legend-color" style="background-color: #ffa500;"></div> Watch</div>
         <div class="legend-item"><div class="legend-color" style="background-color: #ffff00;"></div> Advisory</div>
       </div>
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="popup-overlay"></div>
+  <div class="full-screen-popup" id="full-screen-popup">
+    <div class="popup-header">
+      <h2 id="full-screen-title"></h2>
+      <button class="close-btn" onclick="closeFullScreenPopup()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="alert-section">
+      <h3>Description</h3>
+      <p id="full-screen-description"></p>
+    </div>
+    <div class="alert-section">
+      <h3>Instruction</h3>
+      <p id="full-screen-instruction"></p>
     </div>
   </div>
 
@@ -340,21 +525,47 @@
               map.on('click', layerId, (e) => {
                 const props = e.features[0].properties;
                 const popupContent = `
-                  <div style="font-family: 'Roboto', sans-serif; color: #f0f0f0; background: #3a3a3a; padding: 10px; border-radius: 6px;">
-                    <h3 style="margin: 0 0 10px 0; font-size: 16px;">${props.event}</h3>
+                  <div class="popup-content">
+                    <h3>${props.event}</h3>
                     <p><strong>Severity:</strong> ${props.severity}</p>
                     <p><strong>Area:</strong> ${props.areaDesc}</p>
                     <p><strong>Effective:</strong> ${new Date(props.effective).toLocaleString()}</p>
                     <p><strong>Expires:</strong> ${new Date(props.expires).toLocaleString()}</p>
-                    <p>${props.description}</p>
-                    <a href="${props.id}" style="color: #4e9af1;">More Details</a>
+                    <p>${props.headline || ''}</p>
+                    <a href="#" class="more-details-btn" onclick="showFullScreenPopup(${JSON.stringify(props).replace(/"/g, '&quot;')}); return false;">More Details</a>
                   </div>
                 `;
 
-                new maplibregl.Popup()
+                const popup = new maplibregl.Popup({
+                  maxWidth: '350px',
+                  anchor: 'bottom', // Default anchor
+                  offset: 10
+                })
                   .setLngLat(e.lngLat)
                   .setHTML(popupContent)
                   .addTo(map);
+
+                // Adjust popup position to stay within viewport
+                const popupElement = popup._content;
+                const mapContainer = document.getElementById('map');
+                const mapRect = mapContainer.getBoundingClientRect();
+                const popupRect = popupElement.getBoundingClientRect();
+
+                let anchor = 'bottom';
+                if (popupRect.top < mapRect.top + 60) { // Account for menu bar
+                  anchor = 'top';
+                } else if (popupRect.bottom > mapRect.bottom) {
+                  anchor = 'bottom';
+                }
+                if (popupRect.left < mapRect.left) {
+                  anchor = anchor === 'top' ? 'top-left' : 'bottom-left';
+                } else if (popupRect.right > mapRect.right) {
+                  anchor = anchor === 'top' ? 'top-right' : 'bottom-right';
+                }
+
+                popup.setOffset(anchor.includes('top') ? [0, -10] : [0, 10]);
+                popup.options.anchor = anchor;
+                popup.setLngLat(e.lngLat); // Reapply to update position
               });
 
               // Change cursor on hover
@@ -372,6 +583,34 @@
           console.error('Error fetching alerts:', error);
         });
     });
+
+    // Function to show full-screen popup
+    function showFullScreenPopup(props) {
+      const popup = document.getElementById('full-screen-popup');
+      const overlay = document.getElementById('popup-overlay');
+      const title = document.getElementById('full-screen-title');
+      const description = document.getElementById('full-screen-description');
+      const instruction = document.getElementById('full-screen-instruction');
+
+      title.textContent = props.event;
+      description.innerHTML = (props.description || 'No description available.').replace(/\n/g, '<br>');
+      instruction.innerHTML = (props.instruction || 'No instructions provided.').replace(/\n/g, '<br>');
+
+      overlay.classList.add('show');
+      popup.classList.add('show');
+    }
+
+    // Function to close full-screen popup
+    function closeFullScreenPopup() {
+      const popup = document.getElementById('full-screen-popup');
+      const overlay = document.getElementById('popup-overlay');
+
+      popup.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+
+    // Close full-screen popup when clicking overlay
+    document.getElementById('popup-overlay').addEventListener('click', closeFullScreenPopup);
 
     // Mobile menu adjustment
     const menuItemsContainer = document.querySelector('.menu-items');
