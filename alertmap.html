@@ -12,17 +12,16 @@
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
       font-family: 'Roboto', sans-serif;
       background-color: #2a2a2a;
       color: #f0f0f0;
       line-height: 1.6;
-      overflow-x: hidden;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     .menu-bar {
@@ -65,8 +64,6 @@
       border-radius: 6px;
       transition: background-color 0.3s ease, color 0.3s ease;
       white-space: nowrap;
-      background-color: #4a4a4a;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .menu-item:hover {
@@ -92,8 +89,6 @@
       padding: 8px 12px;
       border-radius: 6px;
       transition: background-color 0.3s ease, color 0.3s ease;
-      background-color: #4a4a4a;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .dropdown-toggle:hover {
@@ -130,20 +125,52 @@
       color: #000;
     }
 
+    .top-left-menu {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+    }
+
+    .top-left-menu select {
+      background: #3a3a3a;
+      color: #e0e0e0;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .top-left-menu select:focus {
+      outline: none;
+      border-color: #11ff00;
+    }
+
     .content {
-      flex: 1;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      height: calc(100vh - 60px);
       display: flex;
       flex-direction: column;
-      margin-top: 60px;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
     }
 
     #map-container {
       flex: 1;
       position: relative;
-      border-radius: 10px;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
       overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      box-shadow: none;
       opacity: 0;
       transform: translateY(20px);
       animation: fadeInUp 0.8s ease-out 0.2s forwards;
@@ -156,7 +183,7 @@
 
     .legend {
       position: absolute;
-      bottom: 20px;
+      bottom: 70px;
       left: 20px;
       background: rgba(0, 0, 0, 0.9);
       padding: 10px;
@@ -180,7 +207,36 @@
       border: 1px solid #555;
     }
 
-    /* Updated Popup Styling */
+    .radar-controls {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+    }
+
+    .radar-controls button {
+      background: #3a3a3a;
+      color: #e0e0e0;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .radar-controls button:hover {
+      background-color: #fff;
+      color: #000;
+    }
+
     .maplibregl-popup-content {
       background: #3a3a3a;
       color: #f0f0f0;
@@ -218,20 +274,20 @@
       display: inline-block;
       margin-top: 10px;
       padding: 8px 12px;
-      background-color: #4e9af1;
-      color: #ffffff;
+      background-color: #fff;
+      color: #000;
       text-decoration: none;
       border-radius: 6px;
       font-weight: 500;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, color 0.3s ease;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .more-details-btn:hover {
-      background-color: #3b82f6;
+      background-color: #11ff00;
+      color: #fff;
     }
 
-    /* Full-Screen Popup Styling */
     .full-screen-popup {
       display: none;
       position: fixed;
@@ -239,7 +295,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       width: 90%;
-      max-width: 600px;
+      max-width: 800px;
       max-height: 80vh;
       background-color: #3a3a3a;
       color: #f0f0f0;
@@ -247,7 +303,6 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
       z-index: 2000;
       padding: 20px;
-      overflow-y: auto;
       opacity: 0;
       animation: fadeInUp 0.3s forwards;
     }
@@ -260,15 +315,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #555;
+      border-bottom: 2px solid #555;
       padding-bottom: 10px;
       margin-bottom: 15px;
     }
 
     .full-screen-popup .popup-header h2 {
       margin: 0;
-      font-size: 20px;
-      font-weight: 500;
+      font-size: 24px;
+      font-weight: 600;
       color: #ffffff;
     }
 
@@ -282,28 +337,31 @@
     }
 
     .full-screen-popup .close-btn:hover {
-      color: #fff;
+      color: #11ff00;
     }
 
-    .full-screen-popup .alert-section {
-      margin-bottom: 20px;
+    .full-screen-popup .alert-content {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 10px;
     }
 
-    .full-screen-popup .alert-section h3 {
+    .full-screen-popup .alert-content h3 {
       font-size: 18px;
       font-weight: 500;
       color: #ffffff;
       margin-bottom: 10px;
+      border-bottom: 1px dashed #555;
+      padding-bottom: 5px;
     }
 
-    .full-screen-popup .alert-section p {
+    .full-screen-popup .alert-content p {
       font-size: 14px;
       line-height: 1.6;
       color: #e0e0e0;
-      margin: 0;
+      margin: 0 0 15px 0;
     }
 
-    /* Popup Overlay */
     .popup-overlay {
       display: none;
       position: fixed;
@@ -336,12 +394,17 @@
 
     @media (max-width: 768px) {
       .content {
-        margin-top: 70px;
-        padding: 15px;
+        top: 50px;
+        height: calc(100vh - 50px - 50px); /* Adjusted for radar controls */
+      }
+
+      .menu-bar {
+        padding: 8px;
       }
 
       .menu-bar img {
         width: 40px;
+        margin-right: 15px;
       }
 
       .menu-item, .dropdown-toggle {
@@ -350,55 +413,336 @@
         padding: 6px 10px;
       }
 
+      .menu-item i, .dropdown-toggle i {
+        margin-right: 6px;
+      }
+
       .dropdown-menu {
         min-width: 180px;
       }
 
+      .dropdown-item {
+        padding: 6px 10px;
+        font-size: 14px;
+      }
+
       .legend {
-        bottom: 10px;
+        bottom: 80px;
         left: 10px;
-        font-size: 12px;
         padding: 8px;
+        font-size: 12px;
       }
 
       .legend-color {
         width: 15px;
         height: 15px;
+        margin-right: 8px;
+      }
+
+      .top-left-menu {
+        top: 70px;
+        left: 10px;
+        padding: 8px;
+      }
+
+      .top-left-menu select {
+        padding: 4px;
+        font-size: 12px;
+      }
+
+      .radar-controls {
+        bottom: 5px;
+        padding: 8px;
+      }
+
+      .radar-controls button {
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+
+      .maplibregl-popup-content {
+        padding: 12px;
+        max-width: 300px;
+        max-height: 350px;
+      }
+
+      .popup-content h3 {
+        font-size: 16px;
+      }
+
+      .popup-content p {
+        font-size: 13px;
+      }
+
+      .more-details-btn {
+        padding: 6px 10px;
+        font-size: 13px;
       }
 
       .full-screen-popup {
-        width: 95%;
+        width: 92%;
         max-height: 85vh;
         padding: 15px;
+        border-radius: 8px;
       }
 
       .full-screen-popup .popup-header h2 {
         font-size: 18px;
       }
 
-      .full-screen-popup .alert-section h3 {
-        font-size: 16px;
+      .full-screen-popup .close-btn {
+        font-size: 20px;
       }
 
-      .full-screen-popup .alert-section p {
+      .full-screen-popup .alert-content h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+      }
+
+      .full-screen-popup .alert-content p {
         font-size: 13px;
+        line-height: 1.5;
       }
     }
 
     @media (max-width: 576px) {
+      .content {
+        top: 45px;
+        height: calc(100vh - 45px - 50px); /* Adjusted for radar controls */
+      }
+
+      .menu-bar {
+        padding: 6px;
+      }
+
+      .menu-bar img {
+        width: 35px;
+        margin-right: 10px;
+      }
+
       .menu-item, .dropdown-toggle {
         margin-right: 10px;
         font-size: 12px;
         padding: 5px 8px;
       }
 
+      .menu-item i, .dropdown-toggle i {
+        margin-right: 5px;
+      }
+
       .dropdown-menu {
         min-width: 160px;
       }
 
+      .dropdown-item {
+        padding: 5px 8px;
+        font-size: 12px;
+      }
+
       .legend {
-        font-size: 10px;
+        bottom: 80px;
+        left: 8px;
         padding: 6px;
+        font-size: 10px;
+      }
+
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        margin-right: 6px;
+      }
+
+      .top-left-menu {
+        top: 65px;
+        left: 8px;
+        padding: 6px;
+      }
+
+      .top-left-menu select {
+        padding: 3px;
+        font-size: 10px;
+      }
+
+      .radar-controls {
+        bottom: 5px;
+        padding: 6px;
+      }
+
+      .radar-controls button {
+        padding: 3px 6px;
+        font-size: 10px;
+      }
+
+      .maplibregl-popup-content {
+        padding: 10px;
+        max-width: 250px;
+        max-height: 300px;
+      }
+
+      .popup-content h3 {
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+
+      .popup-content p {
+        font-size: 12px;
+        margin: 4px 0;
+      }
+
+      .more-details-btn {
+        padding: 5px 8px;
+        font-size: 12px;
+      }
+
+      .full-screen-popup {
+        width: 94%;
+        max-height: 90vh;
+        padding: 12px;
+        border-radius: 6px;
+      }
+
+      .full-screen-popup .popup-header {
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+      }
+
+      .full-screen-popup .popup-header h2 {
+        font-size: 16px;
+      }
+
+      .full-screen-popup .close-btn {
+        font-size: 18px;
+      }
+
+      .full-screen-popup .alert-content h3 {
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+
+      .full-screen-popup .alert-content p {
+        font-size: 12px;
+        line-height: 1.4;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .content {
+        top: 40px;
+        height: calc(100vh - 40px - 50px); /* Adjusted for radar controls */
+      }
+
+      .menu-bar {
+        padding: 5px;
+      }
+
+      .menu-bar img {
+        width: 30px;
+        margin-right: 8px;
+      }
+
+      .menu-item, .dropdown-toggle {
+        margin-right: 8px;
+        font-size: 11px;
+        padding: 4px 6px;
+      }
+
+      .menu-item i, .dropdown-toggle i {
+        margin-right: 4px;
+        font-size: 11px;
+      }
+
+      .dropdown-menu {
+        min-width: 140px;
+      }
+
+      .dropdown-item {
+        padding: 4px 6px;
+        font-size: 11px;
+      }
+
+      .legend {
+        bottom: 80px;
+        left: 5px;
+        padding: 5px;
+        font-size: 9px;
+      }
+
+      .legend-color {
+        width: 10px;
+        height: 10px;
+        margin-right: 5px;
+      }
+
+      .top-left-menu {
+        top: 60px;
+        left: 5px;
+        padding: 5px;
+      }
+
+      .top-left-menu select {
+        padding: 2px;
+        font-size: 9px;
+      }
+
+      .radar-controls {
+        bottom: 5px;
+        padding: 5px;
+      }
+
+      .radar-controls button {
+        padding: 2px 5px;
+        font-size: 9px;
+      }
+
+      .maplibregl-popup-content {
+        padding: 8px;
+        max-width: 220px;
+        max-height: 280px;
+      }
+
+      .popup-content h3 {
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+
+      .popup-content p {
+        font-size: 11px;
+        margin: 3px 0;
+      }
+
+      .more-details-btn {
+        padding: 4px 6px;
+        font-size: 11px;
+      }
+
+      .full-screen-popup {
+        width: 96%;
+        max-height: 92vh;
+        padding: 10px;
+        border-radius: 4px;
+      }
+
+      .full-screen-popup .popup-header {
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+      }
+
+      .full-screen-popup .popup-header h2 {
+        font-size: 14px;
+      }
+
+      .full-screen-popup .close-btn {
+        font-size: 16px;
+      }
+
+      .full-screen-popup .alert-content h3 {
+        font-size: 13px;
+        margin-bottom: 5px;
+      }
+
+      .full-screen-popup .alert-content p {
+        font-size: 11px;
+        line-height: 1.3;
       }
     }
   </style>
@@ -426,8 +770,16 @@
     </div>
   </div>
 
+  <div class="top-left-menu">
+    <label for="map-style">Map Style:</label>
+    <select id="map-style" onchange="changeMapStyle()">
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+      <option value="satellite">Satellite</option>
+    </select>
+  </div>
+
   <div class="content">
-    <h1>NWS Alerts Map</h1>
     <div id="map-container">
       <div id="map"></div>
       <div class="legend">
@@ -438,35 +790,42 @@
     </div>
   </div>
 
+  <div class="radar-controls">
+    <button onclick="rewindRadar()"><i class="fas fa-backward"></i></button>
+    <button onclick="toggleRadarPlayPause()"><i id="play-pause-icon" class="fas fa-play"></i></button>
+    <button onclick="forwardRadar()"><i class="fas fa-forward"></i></button>
+  </div>
+
   <div class="popup-overlay" id="popup-overlay"></div>
   <div class="full-screen-popup" id="full-screen-popup">
     <div class="popup-header">
       <h2 id="full-screen-title"></h2>
       <button class="close-btn" onclick="closeFullScreenPopup()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="alert-section">
+    <div class="alert-content">
       <h3>Description</h3>
       <p id="full-screen-description"></p>
-    </div>
-    <div class="alert-section">
       <h3>Instruction</h3>
       <p id="full-screen-instruction"></p>
     </div>
   </div>
 
   <script>
-    // Initialize MapLibre with a national view
-    const map = new maplibregl.Map({
+    const mapStyles = {
+      dark: 'https://api.maptiler.com/maps/3d1b9c2b-3b90-4457-8310-fbd15c34d453/style.json?key=HKGa1lnD7ToUuzx5Ohp0',
+      light: 'https://api.maptiler.com/maps/bright/style.json?key=HKGa1lnD7ToUuzx5Ohp0',
+      satellite: 'https://api.maptiler.com/maps/hybrid/style.json?key=HKGa1lnD7ToUuzx5Ohp0'
+    };
+
+    let map = new maplibregl.Map({
       container: 'map',
-      style: 'https://api.maptiler.com/maps/3d1b9c2b-3b90-4457-8310-fbd15c34d453/style.json?key=HKGa1lnD7ToUuzx5Ohp0',
-      center: [-98.5795, 39.8283], // Center of the U.S.
+      style: mapStyles.dark,
+      center: [-98.5795, 39.8283],
       zoom: 3.5
     });
 
-    // Add navigation controls
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    // Color mapping for alert severity
     const severityColors = {
       'Extreme': '#ff0000',
       'Severe': '#ff0000',
@@ -475,31 +834,276 @@
       'Unknown': '#d3d3d3'
     };
 
-    // Load NWS alerts
+    let allAlerts = [];
+    let apiData = null;
+    let currentRadarIndex = -1;
+    let radarInterval = null;
+    const radarFrameRate = 500; // milliseconds
+
     map.on('load', () => {
       fetch('https://api.weather.gov/alerts/active?status=actual')
         .then(response => response.json())
         .then(data => {
-          const alerts = data.features;
+          allAlerts = data.features || [];
 
-          alerts.forEach((alert, index) => {
+          allAlerts.forEach((alert, index) => {
             if (alert.geometry && (alert.geometry.type === 'Polygon' || alert.geometry.type === 'MultiPolygon')) {
               const sourceId = `alert-source-${index}`;
               const layerId = `alert-layer-${index}`;
               const severity = alert.properties.severity || 'Unknown';
               const color = severityColors[severity] || '#d3d3d3';
 
-              // Add alert geometry as GeoJSON source
+              if (!map.getSource(sourceId)) {
+                map.addSource(sourceId, {
+                  type: 'geojson',
+                  data: {
+                    type: 'Feature',
+                    geometry: alert.geometry,
+                    properties: {
+                      ...alert.properties,
+                      alertIndex: index
+                    }
+                  }
+                });
+
+                map.addLayer({
+                  id: layerId,
+                  type: 'fill',
+                  source: sourceId,
+                  paint: {
+                    'fill-color': color,
+                    'fill-opacity': 0.4
+                  }
+                });
+
+                map.addLayer({
+                  id: `${layerId}-outline`,
+                  type: 'line',
+                  source: sourceId,
+                  paint: {
+                    'line-color': color,
+                    'line-width': 2
+                  }
+                });
+
+                map.on('click', layerId, (e) => {
+                  const props = e.features[0].properties;
+                  const popupContent = `
+                    <div class="popup-content">
+                      <h3>${props.event}</h3>
+                      <p><strong>Severity:</strong> ${props.severity}</p>
+                      <p><strong>Area:</strong> ${props.areaDesc}</p>
+                      <p><strong>Effective:</strong> ${new Date(props.effective).toLocaleString()}</p>
+                      <p><strong>Expires:</strong> ${new Date(props.expires).toLocaleString()}</p>
+                      <p>${props.headline || ''}</p>
+                      <a href="#" class="more-details-btn" onclick="showFullScreenPopup(${props.alertIndex}); return false;">More Details</a>
+                    </div>
+                  `;
+
+                  const popup = new maplibregl.Popup({
+                    maxWidth: '350px',
+                    anchor: 'bottom',
+                    offset: 10
+                  })
+                    .setLngLat(e.lngLat)
+                    .setHTML(popupContent)
+                    .addTo(map);
+
+                  const popupElement = popup._content;
+                  const mapContainer = document.getElementById('map');
+                  const mapRect = mapContainer.getBoundingClientRect();
+                  const popupRect = popupElement.getBoundingClientRect();
+
+                  let anchor = 'bottom';
+                  if (popupRect.top < mapRect.top + 60) {
+                    anchor = 'top';
+                  } else if (popupRect.bottom > mapRect.bottom) {
+                    anchor = 'bottom';
+                  }
+                  if (popupRect.left < mapRect.left) {
+                    anchor = anchor === 'top' ? 'top-left' : 'bottom-left';
+                  } else if (popupRect.right > mapRect.right) {
+                    anchor = anchor === 'top' ? 'top-right' : 'bottom-right';
+                  }
+
+                  popup.setOffset(anchor.includes('top') ? [0, -10] : [0, 10]);
+                  popup.options.anchor = anchor;
+                  popup.setLngLat(e.lngLat);
+                });
+
+                map.on('mouseenter', layerId, () => {
+                  map.getCanvas().style.cursor = 'pointer';
+                });
+
+                map.on('mouseleave', layerId, () => {
+                  map.getCanvas().style.cursor = '';
+                });
+              }
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching alerts:', error);
+        });
+
+      // Initialize radar
+      refreshRadar();
+    });
+
+    async function refreshRadar() {
+      console.log("Refreshing radar in the background");
+      try {
+        const response = await fetch("https://api.rainviewer.com/public/weather-maps.json");
+        if (!response.ok) throw new Error("Failed to fetch radar data");
+
+        const newApiData = await response.json();
+        apiData = newApiData;
+
+        if (!map.getPane('radarPane')) {
+          map.createPane('radarPane');
+          map.getPane('radarPane').style.zIndex = 450;
+        }
+
+        if (currentRadarIndex === -1 && apiData) {
+          currentRadarIndex = apiData.radar.past.length - 1;
+          updateRadarLayer();
+        }
+      } catch (error) {
+        console.error('Radar refresh error:', error);
+      }
+    }
+
+    function updateRadarLayer() {
+      if (!apiData || !apiData.radar || currentRadarIndex < 0) return;
+
+      const radarFrames = [...apiData.radar.past, ...apiData.radar.nowcast];
+      const frame = radarFrames[currentRadarIndex];
+      const radarUrl = `https://tilecache.rainviewer.com/v2/radar/${frame.path}/256/{z}/{x}/{y}/2/1_0.png`;
+
+      if (map.getLayer('radar-layer')) {
+        map.removeLayer('radar-layer');
+      }
+      if (map.getSource('radar-source')) {
+        map.removeSource('radar-source');
+      }
+
+      map.addSource('radar-source', {
+        type: 'raster',
+        tiles: [radarUrl],
+        tileSize: 256
+      });
+
+      map.addLayer({
+        id: 'radar-layer',
+        type: 'raster',
+        source: 'radar-source',
+        pane: 'radarPane'
+      }, 'alert-layer-0'); // Add below alert layers
+    }
+
+    function toggleRadarPlayPause() {
+      const icon = document.getElementById('play-pause-icon');
+      if (radarInterval) {
+        clearInterval(radarInterval);
+        radarInterval = null;
+        icon.className = 'fas fa-play';
+      } else {
+        radarInterval = setInterval(() => {
+          forwardRadar();
+        }, radarFrameRate);
+        icon.className = 'fas fa-pause';
+      }
+    }
+
+    function forwardRadar() {
+      if (apiData) {
+        const totalFrames = apiData.radar.past.length + apiData.radar.nowcast.length;
+        currentRadarIndex = (currentRadarIndex + 1) % totalFrames;
+        updateRadarLayer();
+      }
+    }
+
+    function rewindRadar() {
+      if (apiData) {
+        const totalFrames = apiData.radar.past.length + apiData.radar.nowcast.length;
+        currentRadarIndex = (currentRadarIndex - 1 + totalFrames) % totalFrames;
+        updateRadarLayer();
+      }
+    }
+
+    function showFullScreenPopup(alertIndex) {
+      const alert = allAlerts[alertIndex];
+      if (!alert) {
+        console.error('Alert not found for index:', alertIndex);
+        return;
+      }
+
+      const props = alert.properties;
+      const popup = document.getElementById('full-screen-popup');
+      const overlay = document.getElementById('popup-overlay');
+      const title = document.getElementById('full-screen-title');
+      const description = document.getElementById('full-screen-description');
+      const instruction = document.getElementById('full-screen-instruction');
+
+      title.textContent = props.event || 'Alert Details';
+      description.innerHTML = (props.description || 'No description available.').replace(/\n/g, '<br>');
+      instruction.innerHTML = (props.instruction || 'No instructions provided.').replace(/\n/g, '<br>');
+
+      // Center popup dynamically
+      setTimeout(() => {
+        const viewportHeight = window.innerHeight;
+        const popupHeight = popup.offsetHeight;
+        const topOffset = (viewportHeight - popupHeight) / 2;
+        popup.style.top = `${Math.max(50, topOffset)}px`;
+        popup.style.left = '50%';
+        popup.style.transform = 'translateX(-50%)';
+      }, 0);
+
+      overlay.classList.add('show');
+      popup.classList.add('show');
+    }
+
+    function closeFullScreenPopup() {
+      const popup = document.getElementById('full-screen-popup');
+      const overlay = document.getElementById('popup-overlay');
+
+      popup.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+
+    document.getElementById('popup-overlay').addEventListener('click', closeFullScreenPopup);
+
+    function changeMapStyle() {
+      const styleSelect = document.getElementById('map-style');
+      const selectedStyle = styleSelect.value;
+      const currentCenter = map.getCenter();
+      const currentZoom = map.getZoom();
+
+      map.setStyle(mapStyles[selectedStyle]);
+      map.once('style.load', () => {
+        map.setCenter(currentCenter);
+        map.setZoom(currentZoom);
+
+        allAlerts.forEach((alert, index) => {
+          if (alert.geometry && (alert.geometry.type === 'Polygon' || alert.geometry.type === 'MultiPolygon')) {
+            const sourceId = `alert-source-${index}`;
+            const layerId = `alert-layer-${index}`;
+            const severity = alert.properties.severity || 'Unknown';
+            const color = severityColors[severity] || '#d3d3d3';
+
+            if (!map.getSource(sourceId)) {
               map.addSource(sourceId, {
                 type: 'geojson',
                 data: {
                   type: 'Feature',
                   geometry: alert.geometry,
-                  properties: alert.properties
+                  properties: {
+                    ...alert.properties,
+                    alertIndex: index
+                  }
                 }
               });
 
-              // Add fill layer
               map.addLayer({
                 id: layerId,
                 type: 'fill',
@@ -510,7 +1114,6 @@
                 }
               });
 
-              // Add outline
               map.addLayer({
                 id: `${layerId}-outline`,
                 type: 'line',
@@ -521,7 +1124,6 @@
                 }
               });
 
-              // Add click event for popup
               map.on('click', layerId, (e) => {
                 const props = e.features[0].properties;
                 const popupContent = `
@@ -532,27 +1134,26 @@
                     <p><strong>Effective:</strong> ${new Date(props.effective).toLocaleString()}</p>
                     <p><strong>Expires:</strong> ${new Date(props.expires).toLocaleString()}</p>
                     <p>${props.headline || ''}</p>
-                    <a href="#" class="more-details-btn" onclick="showFullScreenPopup(${JSON.stringify(props).replace(/"/g, '&quot;')}); return false;">More Details</a>
+                    <a href="#" class="more-details-btn" onclick="showFullScreenPopup(${props.alertIndex}); return false;">More Details</a>
                   </div>
                 `;
 
                 const popup = new maplibregl.Popup({
                   maxWidth: '350px',
-                  anchor: 'bottom', // Default anchor
+                  anchor: 'bottom',
                   offset: 10
                 })
                   .setLngLat(e.lngLat)
                   .setHTML(popupContent)
                   .addTo(map);
 
-                // Adjust popup position to stay within viewport
                 const popupElement = popup._content;
                 const mapContainer = document.getElementById('map');
                 const mapRect = mapContainer.getBoundingClientRect();
                 const popupRect = popupElement.getBoundingClientRect();
 
                 let anchor = 'bottom';
-                if (popupRect.top < mapRect.top + 60) { // Account for menu bar
+                if (popupRect.top < mapRect.top + 60) {
                   anchor = 'top';
                 } else if (popupRect.bottom > mapRect.bottom) {
                   anchor = 'bottom';
@@ -565,10 +1166,9 @@
 
                 popup.setOffset(anchor.includes('top') ? [0, -10] : [0, 10]);
                 popup.options.anchor = anchor;
-                popup.setLngLat(e.lngLat); // Reapply to update position
+                popup.setLngLat(e.lngLat);
               });
 
-              // Change cursor on hover
               map.on('mouseenter', layerId, () => {
                 map.getCanvas().style.cursor = 'pointer';
               });
@@ -577,42 +1177,13 @@
                 map.getCanvas().style.cursor = '';
               });
             }
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching alerts:', error);
+          }
         });
-    });
 
-    // Function to show full-screen popup
-    function showFullScreenPopup(props) {
-      const popup = document.getElementById('full-screen-popup');
-      const overlay = document.getElementById('popup-overlay');
-      const title = document.getElementById('full-screen-title');
-      const description = document.getElementById('full-screen-description');
-      const instruction = document.getElementById('full-screen-instruction');
-
-      title.textContent = props.event;
-      description.innerHTML = (props.description || 'No description available.').replace(/\n/g, '<br>');
-      instruction.innerHTML = (props.instruction || 'No instructions provided.').replace(/\n/g, '<br>');
-
-      overlay.classList.add('show');
-      popup.classList.add('show');
+        if (apiData) updateRadarLayer();
+      });
     }
 
-    // Function to close full-screen popup
-    function closeFullScreenPopup() {
-      const popup = document.getElementById('full-screen-popup');
-      const overlay = document.getElementById('popup-overlay');
-
-      popup.classList.remove('show');
-      overlay.classList.remove('show');
-    }
-
-    // Close full-screen popup when clicking overlay
-    document.getElementById('popup-overlay').addEventListener('click', closeFullScreenPopup);
-
-    // Mobile menu adjustment
     const menuItemsContainer = document.querySelector('.menu-items');
     const dropdownMenu = document.querySelector('#dropdown-menu');
     const menuItems = Array.from(document.querySelectorAll('.menu-item'));
