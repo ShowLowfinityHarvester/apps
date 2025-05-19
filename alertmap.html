@@ -783,9 +783,11 @@
     <div id="map-container">
       <div id="map"></div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-color" style="background-color: #ff0000;"></div> Warning</div>
-        <div class="legend-item"><div class="legend-color" style="background-color: #ffa500;"></div> Watch</div>
-        <div class="legend-item"><div class="legend-color" style="background-color: #ffff00;"></div> Advisory</div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #FF00FF;"></div> Extreme</div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #ff0000;"></div> Severe</div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #ffa500;"></div> Moderate</div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #ffff00;"></div> Minor</div>
+        <div class="legend-item"><div class="legend-color" style="background-color: #d3d3d3;"></div> Unknown</div>
       </div>
     </div>
   </div>
@@ -827,7 +829,7 @@
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     const severityColors = {
-      'Extreme': '#ff0000',
+      'Extreme': '#FF00FF',
       'Severe': '#ff0000',
       'Moderate': '#ffa500',
       'Minor': '#ffff00',
