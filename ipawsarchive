@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IPAWS Daily Alert Viewer</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 20px;
+      max-width: 900px;
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    #status {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.85rem;
+      vertical-align: top;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .details {
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 0.8rem;
+      max-height: 200px;
+      overflow: auto;
+    }
+    .btn {
+      padding: 0.3rem 0.7rem;
+      border: 1px solid #888;
+      background: #eee;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>IPAWS Daily Alert Viewer</h1>
+
+  <div class="controls">
+    <label for="date">Date:</label>
+    <input type="date" id="date" />
+    <button class="btn" id="loadBtn">Load Alerts</button>
+  </div>
+
+  <div id="status"></div>
+
+  <table id="resultsTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Sent (UTC)</th>
+        <th>Identifier</th>
+        <th>Sender</th>
+        <th>Type</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
+
+  <script>
+    const dateInput = document.getElementById('date');
+    const loadBtn = document.getElementById('loadBtn');
+    const statusDiv = document.getElementById('status');
+    const table = document.getElementById('resultsTable');
+    const tbody = document.getElementById('resultsBody');
+
+    // default date (for convenience)
+    dateInput.value = '2020-05-30';
+
+    loadBtn.addEventListener('click', () => {
+      const dateStr = dateInput.value;
+      if (!dateStr) {
+        alert('Please choose a date.');
+        return;
+      }
+      loadAlertsForDate(dateStr);
+    });
+
+    async function loadAlertsForDate(dateStr) {
+      tbody.innerHTML = '';
+      table.style.display = 'none';
+      statusDiv.textContent = 'Loading…';
+
+      // Build start/end in UTC (simple version, no timezone trickiness)
+      const start = `${dateStr}T00:00:00Z`;
+      // Compute next day
+      const d = new Date(dateStr + 'T00:00:00Z');
+      const nextDay = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+      const yyyy = nextDay.getUTCFullYear();
+      const mm = String(nextDay.getUTCMonth() + 1).padStart(2, '0');
+      const dd = String(nextDay.getUTCDate()).padStart(2, '0');
+      const end = `${yyyy}-${mm}-${dd}T00:00:00Z`;
+
+      const baseUrl = 'https://www.fema.gov/api/open/v1/IpawsArchivedAlerts';
+      const filter = `sent ge '${start}' and sent lt '${end}'`;
+      const url = `${baseUrl}?$filter=${encodeURIComponent(filter)}&$top=1000`;
+
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          throw new Error('HTTP ' + resp.status);
+        }
+        const data = await resp.json();
+        const alerts = data.IpawsArchivedAlerts || [];
+
+        statusDiv.textContent = `Found ${alerts.length} alerts for ${dateStr}.`;
+        if (alerts.length === 0) {
+          table.style.display = 'none';
+          return;
+        }
+
+        alerts.forEach(alert => {
+          const tr = document.createElement('tr');
+
+          const sent = alert.sent || '';
+          const identifier = alert.identifier || '';
+          const sender = alert.sender || '';
+          const msgType = alert.msgType || '';
+
+          const tdSent = document.createElement('td');
+          tdSent.textContent = sent;
+
+          const tdId = document.createElement('td');
+          tdId.textContent = identifier;
+
+          const tdSender = document.createElement('td');
+          tdSender.textContent = sender;
+
+          const tdType = document.createElement('td');
+          tdType.textContent = msgType;
+
+          const tdDetails = document.createElement('td');
+          const detailsDiv = document.createElement('div');
+          detailsDiv.className = 'details';
+          // Just show the raw CAP XML for now; later you could parse out title/area.
+          detailsDiv.textContent = alert.originalMessage || '(no originalMessage)';
+          tdDetails.appendChild(detailsDiv);
+
+          tr.appendChild(tdSent);
+          tr.appendChild(tdId);
+          tr.appendChild(tdSender);
+          tr.appendChild(tdType);
+          tr.appendChild(tdDetails);
+
+          tbody.appendChild(tr);
+        });
+
+        table.style.display = '';
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = 'Error loading alerts: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
