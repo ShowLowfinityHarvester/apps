@@ -357,6 +357,13 @@
                                 <option value="Test">Test</option>
                             </select>
                         </div>
+                        <!-- NEW: Checkbox to filter to CIV originator -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="filter-civ" />
+                            <label class="form-check-label" for="filter-civ">
+                                Only show CIV-originator alerts (EAS-ORG = CIV)
+                            </label>
+                        </div>
                         <div class="controls">
                             <button id="load-alerts-btn"><i class="fas fa-cloud-download-alt"></i> Load Alerts</button>
                             <button id="clear-results-btn" class="btn-custom"><i class="fas fa-trash-alt"></i> Clear</button>
@@ -395,7 +402,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- Mobile menu adjustments (same logic as your original page) ---
+        // --- Mobile menu adjustments ---
         const menuItemsContainer = document.querySelector('.menu-items');
         const dropdownMenu = document.querySelector('#dropdown-menu');
         const dropdown = document.querySelector('.dropdown');
@@ -442,16 +449,17 @@
         // --- IPAWS Daily Alert Viewer logic ---
         const dateInput = document.getElementById('alert-date');
         const msgTypeSelect = document.getElementById('msg-type');
+        const filterCivCheckbox = document.getElementById('filter-civ');
         const loadBtn = document.getElementById('load-alerts-btn');
         const clearBtn = document.getElementById('clear-results-btn');
         const statusEl = document.getElementById('status');
         const table = document.getElementById('alerts-table');
         const tbody = document.getElementById('alerts-tbody');
 
-        // Optional: set a default date (e.g., today - 1 day), but DO NOT auto-load
+        // Set default date to yesterday (UTC) but do NOT auto-load
         (function setDefaultDate() {
             const d = new Date();
-            d.setUTCDate(d.getUTCDate() - 1); // yesterday in UTC
+            d.setUTCDate(d.getUTCDate() - 1);
             const yyyy = d.getUTCFullYear();
             const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
             const dd = String(d.getUTCDate()).padStart(2, '0');
@@ -464,9 +472,42 @@
             statusEl.textContent = 'Results cleared. Choose a date and click "Load Alerts" to begin.';
         });
 
+        // Helper: check if originalMessage has <valueName>EAS-ORG</valueName><value>CIV</value>
+        function hasCivOriginator(xmlString) {
+            if (!xmlString) return false;
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xmlString, "application/xml");
+                const params = doc.getElementsByTagName("parameter");
+                for (let i = 0; i < params.length; i++) {
+                    const param = params[i];
+                    const valueNameEl = param.getElementsByTagName("valueName")[0];
+                    const valueEl = param.getElementsByTagName("value")[0];
+                    if (!valueNameEl || !valueEl) continue;
+
+                    const name = (valueNameEl.textContent || "").trim();
+                    const val = (valueEl.textContent || "").trim();
+                    if (name === "EAS-ORG" && val === "CIV") {
+                        return true;
+                    }
+                }
+                // Fallback: raw substring check if parsing didn't find it
+                if (xmlString.includes("<valueName>EAS-ORG</valueName>") &&
+                    xmlString.includes("<value>CIV</value>")) {
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                // If XML is malformed, last-resort string search
+                return xmlString.includes("<valueName>EAS-ORG</valueName>") &&
+                       xmlString.includes("<value>CIV</value>");
+            }
+        }
+
         loadBtn.addEventListener('click', async () => {
             const dateStr = dateInput.value;
             const msgType = msgTypeSelect.value;
+            const filterCiv = filterCivCheckbox.checked;
 
             if (!dateStr) {
                 alert('Please choose a date.');
@@ -488,7 +529,6 @@
 
             let filter = `sent ge '${start}' and sent lt '${end}'`;
             if (msgType) {
-                // msgType: "Alert", "Update", "Cancel", "Test"
                 filter += ` and msgType eq '${msgType}'`;
             }
 
@@ -501,17 +541,24 @@
                     throw new Error('HTTP ' + resp.status);
                 }
                 const data = await resp.json();
-                const alerts = data.IpawsArchivedAlerts || [];
+                let alerts = data.IpawsArchivedAlerts || [];
                 const meta = data.metadata || {};
 
-                statusEl.textContent = `Found ${alerts.length} alerts for ${dateStr} (metadata count: ${meta.count ?? 'n/a'}).`;
+                // Apply CIV-originator filter on the client if requested
+                if (filterCiv) {
+                    alerts = alerts.filter(a => hasCivOriginator(a.originalMessage));
+                }
+
+                statusEl.textContent = `Found ${alerts.length} alerts for ${dateStr}` +
+                    (filterCiv ? ' (CIV-originator only).' : '.') +
+                    (meta.count !== undefined ? ` API reported count: ${meta.count}.` : '');
 
                 if (alerts.length === 0) {
                     table.style.display = 'none';
                     return;
                 }
 
-                alerts.forEach((alert, index) => {
+                alerts.forEach((alert) => {
                     const tr = document.createElement('tr');
 
                     const sent = alert.sent || '';
