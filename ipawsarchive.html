@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
-    <title>WSLF Radio's IPAWS Daily Alert Viewer</title>
+    <title>WSLF Radio's IPAWS Archive 2012-present</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -339,10 +339,10 @@
 
     <section id="eas-encoder">
         <div class="container">
-            <h2>IPAWS / FEMA Daily Alert Viewer</h2>
+            <h2>IPAWS EAS, WEA, And WXR Archives</h2>
             <div class="project-container">
                 <p class="lead">
-                    View archived IPAWS alerts from FEMA's OpenFEMA API, one day at a time.
+                    You can wiew archived IPAWS alerts from FEMA's OpenFEMA API here! 2012-present
                 </p>
 
                 <!-- Controls row -->
@@ -365,7 +365,7 @@
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="filter-originators" />
                             <label class="form-check-label" for="filter-originators">
-                                Only show alerts with EAS-ORG CIV / PEP / EAS (filters out NWS/WXR, etc.)
+                                Only show CIV and PEP alerts
                             </label>
                         </div>
                         <div class="mb-3">
@@ -382,9 +382,9 @@
                             <button id="next-day-btn" title="Next day (Arrow Right)">Next Day <i class="fas fa-arrow-right"></i></button>
                             <button id="clear-results-btn" class="btn-custom"><i class="fas fa-trash-alt"></i> Clear</button>
                         </div>
-                        <p id="status">Choose a date and click "Load Alerts" to begin.</p>
-                        <small class="text-muted">
-                            Data source: FEMA OpenFEMA IPAWS Archived Alerts. Times are in UTC. Use Arrow Left/Right keys for previous/next day.
+                        <p id="status">Choose a date and click "Load Alerts" to load in products.</p>
+                        <small class="status">
+                            All data is from FEMA OpenFEMA IPAWS Archived Alerts. Times are in UTC.
                         </small>
                     </div>
                 </div>
@@ -399,7 +399,7 @@
                                     <th>Identifier</th>
                                     <th>Sender</th>
                                     <th>Type</th>
-                                    <th>Actions</th>
+                                    <th>SAME</th>
                                 </tr>
                             </thead>
                             <tbody id="alerts-tbody"></tbody>
@@ -414,384 +414,401 @@
         <p>© 2025 WSLF Radio. Some Rights Reserved.</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // --- Mobile menu adjustments ---
-        const menuItemsContainer = document.querySelector('.menu-items');
-        const dropdownMenu = document.querySelector('#dropdown-menu');
-        const dropdown = document.querySelector('.dropdown');
-        const menuItems = Array.from(document.querySelectorAll('.menu-item'));
-        let movedItems = new Map();
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // --- Mobile menu adjustments ---
+    const menuItemsContainer = document.querySelector('.menu-items');
+    const dropdownMenu = document.querySelector('#dropdown-menu');
+    const dropdown = document.querySelector('.dropdown');
+    const menuItems = Array.from(document.querySelectorAll('.menu-item'));
+    let movedItems = new Map();
 
-        function adjustMenuForMobile() {
-            const menuBarRect = document.querySelector('.menu-bar').getBoundingClientRect();
-            const dropdownRect = document.querySelector('.dropdown').getBoundingClientRect();
-            const maxVisibleX = menuBarRect.width - dropdownRect.width - 20;
+    function adjustMenuForMobile() {
+        const menuBarRect = document.querySelector('.menu-bar').getBoundingClientRect();
+        const dropdownRect = document.querySelector('.dropdown').getBoundingClientRect();
+        const maxVisibleX = menuBarRect.width - dropdownRect.width - 20;
 
-            movedItems.forEach((clone, onclick) => {
-                const originalItem = menuItems.find(item => item.getAttribute('onclick') === onclick);
-                if (originalItem) {
-                    const cloneRect = clone.getBoundingClientRect();
-                    if (cloneRect.right <= maxVisibleX && cloneRect.left >= 0) {
-                        menuItemsContainer.appendChild(originalItem);
-                        clone.remove();
-                        movedItems.delete(onclick);
-                    }
+        movedItems.forEach((clone, onclick) => {
+            const originalItem = menuItems.find(item => item.getAttribute('onclick') === onclick);
+            if (originalItem) {
+                const cloneRect = clone.getBoundingClientRect();
+                if (cloneRect.right <= maxVisibleX && cloneRect.left >= 0) {
+                    menuItemsContainer.appendChild(originalItem);
+                    clone.remove();
+                    movedItems.delete(onclick);
                 }
-            });
-
-            menuItems.forEach(item => {
-                const itemRect = item.getBoundingClientRect();
-                if (itemRect.right > maxVisibleX || itemRect.left < 0) {
-                    const clone = item.cloneNode(true);
-                    clone.classList.add('dropdown-item');
-                    clone.classList.remove('menu-item');
-                    dropdownMenu.appendChild(clone);
-                    movedItems.set(item.getAttribute('onclick'), clone);
-                    item.remove();
-                }
-            });
-
-            dropdown.style.display = movedItems.size > 0 ? 'inline-block' : 'none';
-        }
-
-        window.addEventListener('load', adjustMenuForMobile);
-        window.addEventListener('resize', adjustMenuForMobile);
-
-        // --- IPAWS Daily Alert Viewer logic ---
-        const dateInput = document.getElementById('alert-date');
-        const msgTypeSelect = document.getElementById('msg-type');
-        const filterOriginatorsCheckbox = document.getElementById('filter-originators');
-        const sameCodeInput = document.getElementById('same-code');
-        const eventCodeInput = document.getElementById('event-code');
-
-        const loadBtn = document.getElementById('load-alerts-btn');
-        const clearBtn = document.getElementById('clear-results-btn');
-        const prevDayBtn = document.getElementById('prev-day-btn');
-        const nextDayBtn = document.getElementById('next-day-btn');
-
-        const statusEl = document.getElementById('status');
-        const table = document.getElementById('alerts-table');
-        const tbody = document.getElementById('alerts-tbody');
-
-        const MAX_AUTO_DAYS = 7; // how many days forward to auto-advance when filters active
-
-        // Set default date to yesterday (UTC) but do NOT auto-load
-        (function setDefaultDate() {
-            const d = new Date();
-            d.setUTCDate(d.getUTCDate() - 1);
-            const yyyy = d.getUTCFullYear();
-            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-            const dd = String(d.getUTCDate()).padStart(2, '0');
-            dateInput.value = `${yyyy}-${mm}-${dd}`;
-        })();
-
-        clearBtn.addEventListener('click', () => {
-            tbody.innerHTML = '';
-            table.style.display = 'none';
-            statusEl.textContent = 'Results cleared. Choose a date and click "Load Alerts" to begin.';
+            }
         });
 
-        // Helpers for XML parsing with namespace fallback
-        function getElementsByLocalName(root, name) {
-            let els = root.getElementsByTagName(name);
+        menuItems.forEach(item => {
+            const itemRect = item.getBoundingClientRect();
+            if (itemRect.right > maxVisibleX || itemRect.left < 0) {
+                const clone = item.cloneNode(true);
+                clone.classList.add('dropdown-item');
+                clone.classList.remove('menu-item');
+                dropdownMenu.appendChild(clone);
+                movedItems.set(item.getAttribute('onclick'), clone);
+                item.remove();
+            }
+        });
+
+        dropdown.style.display = movedItems.size > 0 ? 'inline-block' : 'none';
+    }
+
+    window.addEventListener('load', adjustMenuForMobile);
+    window.addEventListener('resize', adjustMenuForMobile);
+
+    // --- IPAWS Daily Alert Viewer logic ---
+    const dateInput = document.getElementById('alert-date');
+    const msgTypeSelect = document.getElementById('msg-type');
+    const filterOriginatorsCheckbox = document.getElementById('filter-originators');
+    const sameCodeInput = document.getElementById('same-code');
+    const eventCodeInput = document.getElementById('event-code');
+
+    const loadBtn = document.getElementById('load-alerts-btn');
+    const clearBtn = document.getElementById('clear-results-btn');
+    const prevDayBtn = document.getElementById('prev-day-btn');
+    const nextDayBtn = document.getElementById('next-day-btn');
+
+    const statusEl = document.getElementById('status');
+    const table = document.getElementById('alerts-table');
+    const tbody = document.getElementById('alerts-tbody');
+
+    const MAX_AUTO_DAYS = 10; // how many days forward to auto-advance when filters active
+
+    // Set default date to yesterday (UTC) but do NOT auto-load
+    (function setDefaultDate() {
+        const d = new Date();
+        d.setUTCDate(d.getUTCDate() - 1);
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(d.getUTCDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+    })();
+
+    clearBtn.addEventListener('click', () => {
+        tbody.innerHTML = '';
+        table.style.display = 'none';
+        statusEl.textContent = 'Data Cleared';
+    });
+
+    // Helpers for XML parsing with namespace fallback
+    function getElementsByLocalName(root, name) {
+        let els = root.getElementsByTagName(name);
+        if (els && els.length) return els;
+        if (root.getElementsByTagNameNS) {
+            els = root.getElementsByTagNameNS('*', name);
             if (els && els.length) return els;
-            if (root.getElementsByTagNameNS) {
-                els = root.getElementsByTagNameNS('*', name);
-                if (els && els.length) return els;
-            }
-            return [];
         }
+        return [];
+    }
 
-        // Check if originalMessage has EAS-ORG CIV / PEP / EAS
-        function hasAllowedOriginator(xmlString) {
-            if (!xmlString) return false;
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xmlString, "application/xml");
-                const params = getElementsByLocalName(doc, "parameter");
-                const allowed = new Set(["CIV", "PEP", "EAS"]);
-                for (let i = 0; i < params.length; i++) {
-                    const param = params[i];
-                    const valueNameEl = getElementsByLocalName(param, "valueName")[0];
-                    const valueEl = getElementsByLocalName(param, "value")[0];
-                    if (!valueNameEl || !valueEl) continue;
-                    const name = (valueNameEl.textContent || "").trim();
-                    const val = (valueEl.textContent || "").trim();
-                    if (name === "EAS-ORG" && allowed.has(val)) {
-                        return true;
-                    }
+    // Ignore alerts from the NWS WXR CAP feed when requested
+    function isIgnoredSender(sender) {
+        if (!sender) return false;
+        return sender.trim().toLowerCase() === 'w-nws.webmaster@noaa.gov';
+    }
+
+    // SAME / county code match (e.g. 035001)
+    function matchesSameCode(xmlString, sameCode) {
+        if (!sameCode || !xmlString) return true; // no filter
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlString, "application/xml");
+            const geocodes = getElementsByLocalName(doc, "geocode");
+            for (let i = 0; i < geocodes.length; i++) {
+                const g = geocodes[i];
+                const valueNameEl = getElementsByLocalName(g, "valueName")[0];
+                const valueEl = getElementsByLocalName(g, "value")[0];
+                if (!valueNameEl || !valueEl) continue;
+                const name = (valueNameEl.textContent || "").trim();
+                const val = (valueEl.textContent || "").trim();
+                if (name === "SAME" && val.includes(sameCode)) {
+                    return true;
                 }
-                // Fallback: substring check
-                return xmlString.includes("<valueName>EAS-ORG</valueName>") &&
-                       (xmlString.includes("<value>CIV</value>") ||
-                        xmlString.includes("<value>PEP</value>") ||
-                        xmlString.includes("<value>EAS</value>"));
-            } catch (e) {
-                return xmlString.includes("<valueName>EAS-ORG</valueName>") &&
-                       (xmlString.includes("<value>CIV</value>") ||
-                        xmlString.includes("<value>PEP</value>") ||
-                        xmlString.includes("<value>EAS</value>"));
             }
+            // Fallback substring
+            return xmlString.includes(sameCode);
+        } catch (e) {
+            return xmlString.includes(sameCode);
         }
+    }
 
-        // SAME / county code match (e.g. 035001)
-        function matchesSameCode(xmlString, sameCode) {
-            if (!sameCode || !xmlString) return true; // no filter
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xmlString, "application/xml");
-                const geocodes = getElementsByLocalName(doc, "geocode");
-                for (let i = 0; i < geocodes.length; i++) {
-                    const g = geocodes[i];
-                    const valueNameEl = getElementsByLocalName(g, "valueName")[0];
-                    const valueEl = getElementsByLocalName(g, "value")[0];
-                    if (!valueNameEl || !valueEl) continue;
-                    const name = (valueNameEl.textContent || "").trim();
-                    const val = (valueEl.textContent || "").trim();
-                    if (name === "SAME" && val.includes(sameCode)) {
-                        return true;
-                    }
+    // Event code match (e.g. HMW) for filtering
+    function matchesEventCode(xmlString, evtCode) {
+        if (!evtCode || !xmlString) return true; // no filter
+        const code = evtCode.toUpperCase();
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlString, "application/xml");
+            const eventCodes = getElementsByLocalName(doc, "eventCode");
+            for (let i = 0; i < eventCodes.length; i++) {
+                const ec = eventCodes[i];
+                const valueNameEl = getElementsByLocalName(ec, "valueName")[0];
+                const valueEl = getElementsByLocalName(ec, "value")[0];
+                if (!valueNameEl || !valueEl) continue;
+                const name = (valueNameEl.textContent || "").trim();
+                const val = (valueEl.textContent || "").trim().toUpperCase();
+                if (name === "SAME" && val === code) {
+                    return true;
                 }
-                // Fallback substring
-                return xmlString.includes(sameCode);
-            } catch (e) {
-                return xmlString.includes(sameCode);
             }
+            // Fallback substring, but anchored in <value> tags
+            return xmlString.includes(`<value>${code}</value>`);
+        } catch (e) {
+            return xmlString.includes(`<value>${code}</value>`) || xmlString.toUpperCase().includes(code);
         }
+    }
 
-        // Event code match (e.g. HMW)
-        function matchesEventCode(xmlString, evtCode) {
-            if (!evtCode || !xmlString) return true; // no filter
-            const code = evtCode.toUpperCase();
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xmlString, "application/xml");
-                const eventCodes = getElementsByLocalName(doc, "eventCode");
-                for (let i = 0; i < eventCodes.length; i++) {
-                    const ec = eventCodes[i];
-                    const valueNameEl = getElementsByLocalName(ec, "valueName")[0];
-                    const valueEl = getElementsByLocalName(ec, "value")[0];
-                    if (!valueNameEl || !valueEl) continue;
-                    const name = (valueNameEl.textContent || "").trim();
-                    const val = (valueEl.textContent || "").trim().toUpperCase();
-                    if (name === "SAME" && val === code) {
-                        return true;
-                    }
+    // Extract SAME event code (e.g., RWT) from originalMessage XML for display
+    function extractSameEventCode(xmlString) {
+        if (!xmlString) return '';
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlString, "application/xml");
+            const eventCodes = getElementsByLocalName(doc, "eventCode");
+
+            for (let i = 0; i < eventCodes.length; i++) {
+                const ec = eventCodes[i];
+                const valueNameEl = getElementsByLocalName(ec, "valueName")[0];
+                const valueEl = getElementsByLocalName(ec, "value")[0];
+                if (!valueNameEl || !valueEl) continue;
+
+                const name = (valueNameEl.textContent || "").trim().toUpperCase();
+                if (name === "SAME") {
+                    return (valueEl.textContent || "").trim().toUpperCase();
                 }
-                // Fallback substring, but anchored in <value> tags
-                return xmlString.includes(`<value>${code}</value>`);
-            } catch (e) {
-                return xmlString.includes(`<value>${code}</value>`) || xmlString.toUpperCase().includes(code);
-            }
-        }
-
-        function anyFiltersActive() {
-            return filterOriginatorsCheckbox.checked ||
-                   (sameCodeInput.value && sameCodeInput.value.trim() !== "") ||
-                   (eventCodeInput.value && eventCodeInput.value.trim() !== "");
-        }
-
-        // Fetch and filter alerts for a single date; returns {dateStr, alerts, meta}
-        async function fetchAlertsForDate(dateStr) {
-            const msgType = msgTypeSelect.value;
-            const filterOriginators = filterOriginatorsCheckbox.checked;
-            const sameCode = sameCodeInput.value.trim();
-            const evtCode = eventCodeInput.value.trim();
-
-            // Build UTC start/end
-            const start = `${dateStr}T00:00:00Z`;
-            const d = new Date(dateStr + 'T00:00:00Z');
-            const nextDay = new Date(d.getTime() + 24 * 60 * 60 * 1000);
-            const yyyy = nextDay.getUTCFullYear();
-            const mm = String(nextDay.getUTCMonth() + 1).padStart(2, '0');
-            const dd = String(nextDay.getUTCDate()).padStart(2, '0');
-            const end = `${yyyy}-${mm}-${dd}T00:00:00Z`;
-
-            let filter = `sent ge '${start}' and sent lt '${end}'`;
-            if (msgType) {
-                filter += ` and msgType eq '${msgType}'`;
             }
 
-            const baseUrl = 'https://www.fema.gov/api/open/v1/IpawsArchivedAlerts';
-            const url = `${baseUrl}?$filter=${encodeURIComponent(filter)}&$top=1000`;
+            // Fallback regex if DOM parsing fails
+            const match = xmlString.match(
+                /<eventCode>\s*<valueName>\s*SAME\s*<\/valueName>\s*<value>\s*([A-Za-z0-9]+)\s*<\/value>/i
+            );
+            return match ? match[1].toUpperCase() : '';
+        } catch (e) {
+            const match = xmlString.match(
+                /<eventCode>\s*<valueName>\s*SAME\s*<\/valueName>\s*<value>\s*([A-Za-z0-9]+)\s*<\/value>/i
+            );
+            return match ? match[1].toUpperCase() : '';
+        }
+    }
 
-            const resp = await fetch(url);
-            if (!resp.ok) {
-                throw new Error('HTTP ' + resp.status);
-            }
-            const data = await resp.json();
-            let alerts = data.IpawsArchivedAlerts || [];
-            const meta = data.metadata || {};
+    function anyFiltersActive() {
+        return filterOriginatorsCheckbox.checked ||
+               (sameCodeInput.value && sameCodeInput.value.trim() !== "") ||
+               (eventCodeInput.value && eventCodeInput.value.trim() !== "");
+    }
 
-            // Apply client-side filters
-            alerts = alerts.filter(a => {
-                const xml = a.originalMessage || "";
-                if (filterOriginators && !hasAllowedOriginator(xml)) return false;
-                if (!matchesSameCode(xml, sameCode)) return false;
-                if (!matchesEventCode(xml, evtCode)) return false;
-                return true;
-            });
+    // Fetch and filter alerts for a single date; returns {dateStr, alerts, meta}
+    async function fetchAlertsForDate(dateStr) {
+        const msgType = msgTypeSelect.value;
+        const filterOriginators = filterOriginatorsCheckbox.checked;
+        const sameCode = sameCodeInput.value.trim();
+        const evtCode = eventCodeInput.value.trim();
 
-            return { dateStr, alerts, meta };
+        // Build UTC start/end
+        const start = `${dateStr}T00:00:00Z`;
+        const d = new Date(dateStr + 'T00:00:00Z');
+        const nextDay = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+        const yyyy = nextDay.getUTCFullYear();
+        const mm = String(nextDay.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(nextDay.getUTCDate()).padStart(2, '0');
+        const end = `${yyyy}-${mm}-${dd}T00:00:00Z`;
+
+        let filter = `sent ge '${start}' and sent lt '${end}'`;
+        if (msgType) {
+            filter += ` and msgType eq '${msgType}'`;
         }
 
-        function setDateFromOffset(offsetDays) {
-            if (!dateInput.value) return;
-            const d = new Date(dateInput.value + 'T00:00:00Z');
-            d.setUTCDate(d.getUTCDate() + offsetDays);
-            const yyyy = d.getUTCFullYear();
-            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-            const dd = String(d.getUTCDate()).padStart(2, '0');
-            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        const baseUrl = 'https://www.fema.gov/api/open/v1/IpawsArchivedAlerts';
+        const url = `${baseUrl}?$filter=${encodeURIComponent(filter)}&$top=1000`;
+
+        const resp = await fetch(url);
+        if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
         }
+        const data = await resp.json();
+        let alerts = data.IpawsArchivedAlerts || [];
+        const meta = data.metadata || {};
 
-        // Render results into table
-        function renderAlerts(result, autoAdvancedSteps = 0) {
-            const { dateStr, alerts, meta } = result;
-            tbody.innerHTML = '';
+        // Apply client-side filters
+        alerts = alerts.filter(a => {
+            const xml = a.originalMessage || "";
+            const sender = a.sender || "";
 
-            if (alerts.length === 0) {
-                table.style.display = 'none';
-                if (anyFiltersActive() && autoAdvancedSteps > 0) {
-                    statusEl.textContent = `No alerts matched filters on the selected date or the next ${autoAdvancedSteps} day(s).`;
-                } else {
-                    statusEl.textContent = `No alerts matched filters for ${dateStr}.`;
-                }
-                return;
-            }
+            // If checkbox is on, hide alerts from NWS WXR sender
+            if (filterOriginators && isIgnoredSender(sender)) return false;
 
-            alerts.forEach(alert => {
-                const tr = document.createElement('tr');
+            if (!matchesSameCode(xml, sameCode)) return false;
+            if (!matchesEventCode(xml, evtCode)) return false;
+            return true;
+        });
 
-                const sent = alert.sent || '';
-                const identifier = alert.identifier || '';
-                const sender = alert.sender || '';
-                const msgTypeVal = alert.msgType || '';
-                const originalXml = alert.originalMessage || '(no originalMessage provided)';
+        return { dateStr, alerts, meta };
+    }
 
-                const tdSent = document.createElement('td');
-                tdSent.textContent = sent;
+    function setDateFromOffset(offsetDays) {
+        if (!dateInput.value) return;
+        const d = new Date(dateInput.value + 'T00:00:00Z');
+        d.setUTCDate(d.getUTCDate() + offsetDays);
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(d.getUTCDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
 
-                const tdId = document.createElement('td');
-                tdId.textContent = identifier;
+    // Render results into table
+    function renderAlerts(result, autoAdvancedSteps = 0) {
+        const { dateStr, alerts, meta } = result;
+        tbody.innerHTML = '';
 
-                const tdSender = document.createElement('td');
-                tdSender.textContent = sender;
-
-                const tdType = document.createElement('td');
-                tdType.textContent = msgTypeVal;
-
-                const tdActions = document.createElement('td');
-
-                const toggleBtn = document.createElement('button');
-                toggleBtn.className = 'btn-custom alert-details-toggle';
-                toggleBtn.type = 'button';
-                toggleBtn.innerHTML = '<i class="fas fa-eye"></i> View XML';
-
-                const detailsDiv = document.createElement('div');
-                detailsDiv.className = 'alert-details';
-                detailsDiv.textContent = originalXml;
-                detailsDiv.style.display = 'none';
-
-                toggleBtn.addEventListener('click', () => {
-                    const visible = detailsDiv.style.display === 'block';
-                    detailsDiv.style.display = visible ? 'none' : 'block';
-                    toggleBtn.innerHTML = visible
-                        ? '<i class="fas fa-eye"></i> View XML'
-                        : '<i class="fas fa-eye-slash"></i> Hide XML';
-                });
-
-                tdActions.appendChild(toggleBtn);
-                tdActions.appendChild(detailsDiv);
-
-                tr.appendChild(tdSent);
-                tr.appendChild(tdId);
-                tr.appendChild(tdSender);
-                tr.appendChild(tdType);
-                tr.appendChild(tdActions);
-
-                tbody.appendChild(tr);
-            });
-
-            table.style.display = '';
-            const filterNote = anyFiltersActive() ? ' (filters applied)' : '';
-            const autoNote = autoAdvancedSteps > 0 ? ` (auto-advanced ${autoAdvancedSteps} day(s) forward)` : '';
-            const apiNote = meta.count !== undefined ? ` API reported count (unfiltered): ${meta.count}.` : '';
-            statusEl.textContent = `Showing ${alerts.length} alert(s) for ${dateStr}${filterNote}${autoNote}.${apiNote}`;
-        }
-
-        // Main loader with optional auto-advance
-        async function loadAlerts(autoAdvanceForward = true) {
-            const startDate = dateInput.value;
-            if (!startDate) {
-                alert('Please choose a date.');
-                return;
-            }
-
-            tbody.innerHTML = '';
+        if (alerts.length === 0) {
             table.style.display = 'none';
-            statusEl.textContent = 'Loading alerts from FEMA...';
-
-            try {
-                // First, try the selected date
-                let result = await fetchAlertsForDate(startDate);
-                if (result.alerts.length > 0 || !anyFiltersActive() || !autoAdvanceForward) {
-                    // Either we found alerts, or no filters, or we don't auto-advance
-                    dateInput.value = result.dateStr;
-                    renderAlerts(result, 0);
-                    return;
-                }
-
-                // Auto-advance forward up to MAX_AUTO_DAYS until we find something
-                let steps = 0;
-                let currentDate = startDate;
-                while (steps < MAX_AUTO_DAYS && result.alerts.length === 0) {
-                    steps++;
-                    const d = new Date(currentDate + 'T00:00:00Z');
-                    d.setUTCDate(d.getUTCDate() + 1);
-                    const yyyy = d.getUTCFullYear();
-                    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-                    const dd = String(d.getUTCDate()).padStart(2, '0');
-                    currentDate = `${yyyy}-${mm}-${dd}`;
-                    result = await fetchAlertsForDate(currentDate);
-                }
-
-                dateInput.value = result.dateStr;
-                renderAlerts(result, result.alerts.length > 0 ? steps : steps);
-            } catch (err) {
-                console.error(err);
-                statusEl.textContent = 'Error loading alerts: ' + err.message;
-                table.style.display = 'none';
+            if (anyFiltersActive() && autoAdvancedSteps > 0) {
+                statusEl.textContent = `No alerts matched filters on the selected date or the next ${autoAdvancedSteps} day(s).`;
+            } else {
+                statusEl.textContent = `No alerts matched filters for ${dateStr}.`;
             }
+            return;
         }
 
-        loadBtn.addEventListener('click', () => loadAlerts(true));
+        alerts.forEach(alert => {
+            const tr = document.createElement('tr');
 
-        prevDayBtn.addEventListener('click', () => {
-            if (!dateInput.value) return;
-            setDateFromOffset(-1);
-            loadAlerts(false); // no auto-advance when manually stepping
+            const sent = alert.sent || '';
+            const identifier = alert.identifier || '';
+            const sender = alert.sender || '';
+            const msgTypeVal = alert.msgType || '';
+            const originalXml = alert.originalMessage || '(no originalMessage provided)';
+            const sameEventCode = extractSameEventCode(alert.originalMessage || '');
+
+            const tdSent = document.createElement('td');
+            tdSent.textContent = sent;
+
+            const tdId = document.createElement('td');
+            tdId.textContent = identifier;
+
+            const tdSender = document.createElement('td');
+            tdSender.textContent = sender;
+
+            const tdType = document.createElement('td');
+            tdType.textContent = msgTypeVal;
+
+            const tdSame = document.createElement('td');
+            tdSame.textContent = sameEventCode || '';
+
+            const tdActions = document.createElement('td');
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn-custom alert-details-toggle';
+            toggleBtn.type = 'button';
+            toggleBtn.innerHTML = '<i class="fas fa-eye"></i> View XML';
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'alert-details';
+            detailsDiv.textContent = originalXml;
+            detailsDiv.style.display = 'none';
+
+            toggleBtn.addEventListener('click', () => {
+                const visible = detailsDiv.style.display === 'block';
+                detailsDiv.style.display = visible ? 'none' : 'block';
+                toggleBtn.innerHTML = visible
+                    ? '<i class="fas fa-eye"></i> View XML'
+                    : '<i class="fas fa-eye-slash"></i> Hide XML';
+            });
+
+            tdActions.appendChild(toggleBtn);
+            tdActions.appendChild(detailsDiv);
+
+            tr.appendChild(tdSent);
+            tr.appendChild(tdId);
+            tr.appendChild(tdSender);
+            tr.appendChild(tdType);
+            tr.appendChild(tdSame);   // SAME event code column
+            tr.appendChild(tdActions);
+
+            tbody.appendChild(tr);
         });
 
-        nextDayBtn.addEventListener('click', () => {
-            if (!dateInput.value) return;
-            setDateFromOffset(1);
-            loadAlerts(false); // no auto-advance when manually stepping
-        });
+        table.style.display = '';
+        const filterNote = anyFiltersActive() ? ' (filters applied)' : '';
+        const autoNote = autoAdvancedSteps > 0 ? ` (auto-advanced ${autoAdvancedSteps} day(s) forward)` : '';
+        const apiNote = meta.count !== undefined ? ` API reported count (unfiltered): ${meta.count}.` : '';
+        statusEl.textContent = `Showing ${alerts.length} alert(s) for ${dateStr}${filterNote}${autoNote}.${apiNote}`;
+    }
 
-        // Keyboard navigation: ArrowLeft/ArrowRight for previous/next day
-        window.addEventListener('keydown', (e) => {
-            const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-            if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                prevDayBtn.click();
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                nextDayBtn.click();
+    // Main loader with optional auto-advance
+    async function loadAlerts(autoAdvanceForward = true) {
+        const startDate = dateInput.value;
+        if (!startDate) {
+            alert('Please choose a date.');
+            return;
+        }
+
+        tbody.innerHTML = '';
+        table.style.display = 'none';
+        statusEl.textContent = 'Loading alerts from FEMA...';
+
+        try {
+            // First, try the selected date
+            let result = await fetchAlertsForDate(startDate);
+            if (result.alerts.length > 0 || !anyFiltersActive() || !autoAdvanceForward) {
+                // Either we found alerts, or no filters, or we don't auto-advance
+                dateInput.value = result.dateStr;
+                renderAlerts(result, 0);
+                return;
             }
-        });
-    </script>
+
+            // Auto-advance forward up to MAX_AUTO_DAYS until we find something
+            let steps = 0;
+            let currentDate = startDate;
+            while (steps < MAX_AUTO_DAYS && result.alerts.length === 0) {
+                steps++;
+                const d = new Date(currentDate + 'T00:00:00Z');
+                d.setUTCDate(d.getUTCDate() + 1);
+                const yyyy = d.getUTCFullYear();
+                const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+                const dd = String(d.getUTCDate()).padStart(2, '0');
+                currentDate = `${yyyy}-${mm}-${dd}`;
+                result = await fetchAlertsForDate(currentDate);
+            }
+
+            dateInput.value = result.dateStr;
+            renderAlerts(result, result.alerts.length > 0 ? steps : steps);
+        } catch (err) {
+            console.error(err);
+            statusEl.textContent = 'Error loading alerts: ' + err.message;
+            table.style.display = 'none';
+        }
+    }
+
+    loadBtn.addEventListener('click', () => loadAlerts(true));
+
+    prevDayBtn.addEventListener('click', () => {
+        if (!dateInput.value) return;
+        setDateFromOffset(-1);
+        loadAlerts(false); // no auto-advance when manually stepping
+    });
+
+    nextDayBtn.addEventListener('click', () => {
+        if (!dateInput.value) return;
+        setDateFromOffset(1);
+        loadAlerts(false); // no auto-advance when manually stepping
+    });
+
+    // Keyboard navigation: ArrowLeft/ArrowRight for previous/next day
+    window.addEventListener('keydown', (e) => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            prevDayBtn.click();
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            nextDayBtn.click();
+        }
+    });
+</script>
+
 </body>
 </html>
