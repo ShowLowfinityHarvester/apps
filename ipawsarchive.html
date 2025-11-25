@@ -228,6 +228,7 @@
             font-size: 0.8rem;
         }
 
+        /* Legacy alert-details class kept in case you reuse it elsewhere */
         .alert-details {
             margin-top: 6px;
             padding: 8px;
@@ -238,7 +239,7 @@
             font-family: monospace;
             font-size: 0.8rem;
             white-space: pre-wrap;
-            color: #f8f8f8; /* brighter text for readability */
+            color: #f8f8f8;
             border: 1px solid #333;
         }
 
@@ -262,7 +263,79 @@
             }
         }
 
-        /* Mobile tweaks */
+        /* XML Modal styles */
+        .xml-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+        }
+
+        .xml-modal-content {
+            background-color: #111;
+            border-radius: 10px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 80vh;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333;
+        }
+
+        .xml-modal-header,
+        .xml-modal-footer {
+            padding: 10px 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .xml-modal-footer {
+            border-top: 1px solid #333;
+            border-bottom: none;
+        }
+
+        .xml-modal-header h5 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .xml-modal-body {
+            padding: 10px 15px;
+            overflow: auto;
+            flex: 1;
+        }
+
+        .xml-modal-body pre {
+            margin: 0;
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: pre;
+            color: #f8f8f8;
+        }
+
+        .btn-close-custom {
+            border: none;
+            background: transparent;
+            color: #e0e0e0;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .btn-close-custom:hover {
+            color: #11ff00;
+        }
+
+        .xml-modal-footer .btn-custom {
+            margin: 0 5px 0 0;
+        }
+
         @media (max-width: 768px) {
             .menu-bar img {
                 width: 40px;
@@ -293,6 +366,11 @@
             select {
                 max-width: 100%;
             }
+
+            .xml-modal-content {
+                max-width: 95%;
+                width: 95%;
+            }
         }
 
         @media (max-width: 576px) {
@@ -310,6 +388,10 @@
             .btn-custom {
                 padding: 6px 10px;
                 font-size: 0.8rem;
+            }
+
+            .xml-modal-header h5 {
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -400,6 +482,7 @@
                                     <th>Sender</th>
                                     <th>Type</th>
                                     <th>SAME</th>
+                                    <th>XML</th>
                                 </tr>
                             </thead>
                             <tbody id="alerts-tbody"></tbody>
@@ -413,6 +496,27 @@
     <footer>
         <p>© 2025 WSLF Radio. Some Rights Reserved.</p>
     </footer>
+
+    <!-- XML Modal -->
+    <div id="xml-modal" class="xml-modal">
+        <div class="xml-modal-content">
+            <div class="xml-modal-header">
+                <h5 id="xml-modal-title">Alert XML</h5>
+                <button id="xml-close-btn" class="btn-close-custom" aria-label="Close">&times;</button>
+            </div>
+            <div class="xml-modal-body">
+                <pre id="xml-modal-body"></pre>
+            </div>
+            <div class="xml-modal-footer">
+                <a id="xml-download-link" class="btn-custom" href="#" download>
+                    <i class="fas fa-download"></i> Download XML
+                </a>
+                <button id="xml-close-btn-footer" class="btn-custom">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -475,6 +579,14 @@
     const tbody = document.getElementById('alerts-tbody');
 
     const MAX_AUTO_DAYS = 10; // how many days forward to auto-advance when filters active
+
+    // XML modal elements
+    const xmlModal = document.getElementById('xml-modal');
+    const xmlModalBody = document.getElementById('xml-modal-body');
+    const xmlModalTitle = document.getElementById('xml-modal-title');
+    const xmlDownloadLink = document.getElementById('xml-download-link');
+    const xmlCloseBtn = document.getElementById('xml-close-btn');
+    const xmlCloseBtnFooter = document.getElementById('xml-close-btn-footer');
 
     // Set default date to yesterday (UTC) but do NOT auto-load
     (function setDefaultDate() {
@@ -599,6 +711,79 @@
                (eventCodeInput.value && eventCodeInput.value.trim() !== "");
     }
 
+    // Pretty-print XML similar to how browsers format it
+    function formatXml(xml) {
+        if (!xml) return '';
+        // First, add line breaks between tags
+        xml = xml.replace(/>\s*</g, '>\n<');
+        const lines = xml.split('\n');
+        let indent = 0;
+        const formatted = [];
+
+        const indentChar = '  '; // two spaces
+
+        lines.forEach(line => {
+            let trimmed = line.trim();
+            if (!trimmed) return;
+
+            if (/^<\/.+>/.test(trimmed)) {
+                // Closing tag, decrease indent first
+                indent = Math.max(indent - 1, 0);
+            }
+
+            formatted.push(indentChar.repeat(indent) + trimmed);
+
+            if (/^<[^!?/].*[^/]>$/.test(trimmed) && !/^<.+<\/.+>$/.test(trimmed)) {
+                // Opening tag (not self closing, not on same line as closing)
+                indent++;
+            }
+        });
+
+        return formatted.join('\n');
+    }
+
+    function openXmlModal(xmlString, identifier) {
+        const formatted = formatXml(xmlString || '(no originalMessage provided)');
+        xmlModalBody.textContent = formatted;
+        xmlModalTitle.textContent = identifier ? `Viewing the XML of ${identifier}` : 'Alert XML';
+        xmlModal.style.display = 'flex';
+
+        // Prepare download link
+        const blob = new Blob([xmlString || ''], { type: 'application/xml' });
+        if (xmlDownloadLink.dataset.url) {
+            URL.revokeObjectURL(xmlDownloadLink.dataset.url);
+        }
+        const url = URL.createObjectURL(blob);
+        xmlDownloadLink.href = url;
+        xmlDownloadLink.download = (identifier ? identifier : 'alert') + '.xml';
+        xmlDownloadLink.dataset.url = url;
+    }
+
+    function closeXmlModal() {
+        xmlModal.style.display = 'none';
+        if (xmlDownloadLink.dataset.url) {
+            URL.revokeObjectURL(xmlDownloadLink.dataset.url);
+            delete xmlDownloadLink.dataset.url;
+        }
+    }
+
+    xmlCloseBtn.addEventListener('click', closeXmlModal);
+    xmlCloseBtnFooter.addEventListener('click', closeXmlModal);
+
+    // Close on clicking outside content
+    xmlModal.addEventListener('click', (e) => {
+        if (e.target === xmlModal) {
+            closeXmlModal();
+        }
+    });
+
+    // Close on Escape
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && xmlModal.style.display === 'flex') {
+            closeXmlModal();
+        }
+    });
+
     // Fetch and filter alerts for a single date; returns {dateStr, alerts, meta}
     async function fetchAlertsForDate(dateStr) {
         const msgType = msgTypeSelect.value;
@@ -697,35 +882,22 @@
             const tdSame = document.createElement('td');
             tdSame.textContent = sameEventCode || '';
 
-            const tdActions = document.createElement('td');
-
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'btn-custom alert-details-toggle';
-            toggleBtn.type = 'button';
-            toggleBtn.innerHTML = '<i class="fas fa-eye"></i> View XML';
-
-            const detailsDiv = document.createElement('div');
-            detailsDiv.className = 'alert-details';
-            detailsDiv.textContent = originalXml;
-            detailsDiv.style.display = 'none';
-
-            toggleBtn.addEventListener('click', () => {
-                const visible = detailsDiv.style.display === 'block';
-                detailsDiv.style.display = visible ? 'none' : 'block';
-                toggleBtn.innerHTML = visible
-                    ? '<i class="fas fa-eye"></i> View XML'
-                    : '<i class="fas fa-eye-slash"></i> Hide XML';
+            const tdXml = document.createElement('td');
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn-custom alert-details-toggle';
+            viewBtn.type = 'button';
+            viewBtn.innerHTML = '<i class="fas fa-eye"></i> View XML';
+            viewBtn.addEventListener('click', () => {
+                openXmlModal(originalXml, identifier);
             });
-
-            tdActions.appendChild(toggleBtn);
-            tdActions.appendChild(detailsDiv);
+            tdXml.appendChild(viewBtn);
 
             tr.appendChild(tdSent);
             tr.appendChild(tdId);
             tr.appendChild(tdSender);
             tr.appendChild(tdType);
-            tr.appendChild(tdSame);   // SAME event code column
-            tr.appendChild(tdActions);
+            tr.appendChild(tdSame);
+            tr.appendChild(tdXml);
 
             tbody.appendChild(tr);
         });
