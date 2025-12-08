@@ -228,7 +228,7 @@
             font-size: 0.8rem;
         }
 
-        /* Legacy alert-details class kept in case you reuse it elsewhere */
+        
         .alert-details {
             margin-top: 6px;
             padding: 8px;
@@ -424,7 +424,7 @@
             <h2>IPAWS EAS, WEA, And WXR Archives</h2>
             <div class="project-container">
                 <p class="lead">
-                    You can wiew archived IPAWS alerts from FEMA's OpenFEMA API here! 2012-present
+                    You can wiew archived IPAWS alerts from FEMA's OpenFEMA API here! 2012-present! to view alerts converted into EAS, <a href="httpd://www.wslfradio.org/ipawscap-archive/alerts/">click here</a>.
                 </p>
 
                 <!-- Controls row -->
@@ -464,9 +464,9 @@
                             <button id="next-day-btn" title="Next day (Arrow Right)">Next Day <i class="fas fa-arrow-right"></i></button>
                             <button id="clear-results-btn" class="btn-custom"><i class="fas fa-trash-alt"></i> Clear</button>
                         </div>
-                        <p id="status">Choose a date and click "Load Alerts" to load in products.</p>
+                        <p id="status">Choose a date and click Load Alerts to load in cap products!</p>
                         <small class="status">
-                            All data is from FEMA OpenFEMA IPAWS Archived Alerts. Times are in UTC.
+                            All data is from FEMA's OpenFEMA IPAWS archive service. Times are in UTC.
                         </small>
                     </div>
                 </div>
@@ -520,7 +520,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // --- Mobile menu adjustments ---
+    
     const menuItemsContainer = document.querySelector('.menu-items');
     const dropdownMenu = document.querySelector('#dropdown-menu');
     const dropdown = document.querySelector('.dropdown');
@@ -562,7 +562,7 @@
     window.addEventListener('load', adjustMenuForMobile);
     window.addEventListener('resize', adjustMenuForMobile);
 
-    // --- IPAWS Daily Alert Viewer logic ---
+    
     const dateInput = document.getElementById('alert-date');
     const msgTypeSelect = document.getElementById('msg-type');
     const filterOriginatorsCheckbox = document.getElementById('filter-originators');
@@ -580,7 +580,7 @@
 
     const MAX_AUTO_DAYS = 10; // how many days forward to auto-advance when filters active
 
-    // XML modal elements
+    
     const xmlModal = document.getElementById('xml-modal');
     const xmlModalBody = document.getElementById('xml-modal-body');
     const xmlModalTitle = document.getElementById('xml-modal-title');
@@ -588,7 +588,7 @@
     const xmlCloseBtn = document.getElementById('xml-close-btn');
     const xmlCloseBtnFooter = document.getElementById('xml-close-btn-footer');
 
-    // Set default date to yesterday (UTC) but do NOT auto-load
+    
     (function setDefaultDate() {
         const d = new Date();
         d.setUTCDate(d.getUTCDate() - 1);
@@ -604,7 +604,7 @@
         statusEl.textContent = 'Data Cleared';
     });
 
-    // Helpers for XML parsing with namespace fallback
+    
     function getElementsByLocalName(root, name) {
         let els = root.getElementsByTagName(name);
         if (els && els.length) return els;
@@ -615,15 +615,15 @@
         return [];
     }
 
-    // Ignore alerts from the NWS WXR CAP feed when requested
+    
     function isIgnoredSender(sender) {
         if (!sender) return false;
         return sender.trim().toLowerCase() === 'w-nws.webmaster@noaa.gov';
     }
 
-    // SAME / county code match (e.g. 035001)
+    
     function matchesSameCode(xmlString, sameCode) {
-        if (!sameCode || !xmlString) return true; // no filter
+        if (!sameCode || !xmlString) return true; 
         try {
             const parser = new DOMParser();
             const doc = parser.parseFromString(xmlString, "application/xml");
@@ -639,16 +639,16 @@
                     return true;
                 }
             }
-            // Fallback substring
+            
             return xmlString.includes(sameCode);
         } catch (e) {
             return xmlString.includes(sameCode);
         }
     }
 
-    // Event code match (e.g. HMW) for filtering
+    
     function matchesEventCode(xmlString, evtCode) {
-        if (!evtCode || !xmlString) return true; // no filter
+        if (!evtCode || !xmlString) return true; 
         const code = evtCode.toUpperCase();
         try {
             const parser = new DOMParser();
