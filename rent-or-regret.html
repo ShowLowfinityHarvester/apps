@@ -598,7 +598,7 @@
       choicesCard.classList.remove('hidden');
       resultCard.classList.add('hidden');
       navControls.classList.add('hidden');
-      nextBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Next Scene';
+      nextBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Next Scenario';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -616,8 +616,8 @@
       allButtons.forEach(btn => btn.disabled = true);
       navControls.classList.remove('hidden');
       nextBtn.innerHTML = currentScene === scenes.length - 1
-        ? '<i class="fas fa-list"></i> Go to TL;DR'
-        : '<i class="fas fa-arrow-right"></i> Next Scene';
+        ? '<i class="fas fa-list"></i> Go to Overview'
+        : '<i class="fas fa-arrow-right"></i> Next Scenario';
     }
 
     function showFinalSummary() {
