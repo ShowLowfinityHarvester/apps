@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
-  <title>Rent or Regret Story Mode</title>
+  <title>How to rent a property</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -228,8 +228,8 @@
 <body>
   <section id="story-game">
     <div class="container">
-      <h1>Rent or Regret</h1>
-      <p class="subtitle">A story-based apartment renting game. You present each situation, click the class’s chosen answer, then use the result to teach what a first-time renter should know.</p>
+      <h1></h1>
+      <p class="subtitle"></p>
 
       <div class="project-container">
         <div class="top-row">
@@ -238,10 +238,10 @@
         </div>
 
         <div class="intro-card fade-in" id="introCard">
-          <div class="section-heading">Welcome to Rent or Regret</div>
-          <p>You’re about to help make real-life decisions about renting a first apartment. For each scene, listen to the situation and decide what the character should do.</p>
-          <p>Be ready to vote on each choice, think about money, responsibilities, and long-term consequences, and remember that there may be more than one good-sounding option—your goal is to choose the smartest one.</p>
-          <p>Let’s see if you can avoid the regrets and make the right moves.</p>
+          <div class="section-heading">The basics of Renting a Property</div>
+          <p>You’re about to make decisions about renting your first property via answering these scenario based questions. For each Scenario, you are gonna decide what you should do in a certain situation (the answers to the questions are obvious!).</p>
+          <p>Be ready to vote on each scenario! Answers will be decided based on a class majority vote! think about things like money, and the long term if you decide to rent for that long. The answers to the questions are pretty straightforward, meaning it's hard to guess wrong is you have basic common sense, as I don't wanna spend too much time doing this so just keep that in mind.</p>
+          <p>Lets see how you do</p>
           <div class="controls">
             <button id="startBtn"><i class="fas fa-play"></i> Start</button>
           </div>
@@ -249,12 +249,12 @@
         </div>
 
         <div class="overview-card hidden fade-in" id="overviewCard">
-          <div class="section-heading">What renting is like</div>
-          <p>Renting your first apartment can feel exciting because it means freedom and independence, but it also comes with real responsibilities. A renter signs a lease, pays rent every month, follows rules, and has to plan carefully so the apartment stays affordable.</p>
+          <div class="section-heading">Well... What is renting like?</div>
+          <p>Renting your first apartment is a can make you feel proud or something similar to that, as you know, it's your first hosue. BUt that also means that have to be responsible with just about everything. You have to sign a lease, pay rent and possibly other fees every month, follow your landlords rules (as you do not own the property), And plan ahead to ensure you can afford rent each month!</p>
           <ul class="teach-list">
-            <li>Rent is not the only cost. Most renters also pay for utilities, food, transportation, and personal bills.</li>
-            <li>Moving in usually costs more than one month of rent because there can be deposits, application fees, setup costs, and insurance.</li>
-            <li>A lease is a legal agreement, so renters need to read it carefully and understand the rules before signing.</li>
+            <li>Rent is not the only cost you are dealing with. you also also pay for utilities among other things they will charge you with.</li>
+            <li>Moving in usually costs more than a month of rent due to there being deposits, and insurance and other costs up front.</li>
+            <li>A lease is a legal agreement. You need to read it thourly thouroughly and understand the the terms and conditions before signing it.</li>
             <li>Good choices can save money and stress. Bad choices can create problems fast.</li>
           </ul>
           <div class="controls">
@@ -263,13 +263,13 @@
         </div>
 
         <div class="story-card hidden fade-in" id="storyCard">
-          <div class="story-label" id="storyLabel">Scene 1</div>
+          <div class="story-label" id="storyLabel">Scenario 1</div>
           <div class="story-title" id="storyTitle"></div>
           <p class="story-situation" id="storySituation"></p>
         </div>
 
         <div class="choices-card hidden fade-in" id="choicesCard">
-          <div class="section-heading">What should the character do?</div>
+          <div class="section-heading">What should you do?</div>
           <div class="choice-grid" id="choiceGrid"></div>
         </div>
 
@@ -280,13 +280,13 @@
         </div>
 
         <div class="ending-card hidden fade-in" id="endingCard">
-          <div class="section-heading">TL;DR: General takeaways</div>
+          <div class="section-heading">General takeaways</div>
           <ul class="teach-list" id="endingText"></ul>
         </div>
 
         <div class="controls hidden" id="navControls">
-          <button id="nextBtn"><i class="fas fa-arrow-right"></i> Next Scene</button>
-          <button id="restartBtn"><i class="fas fa-rotate-left"></i> Restart Story</button>
+          <button id="nextBtn"><i class="fas fa-arrow-right"></i> Next Scenario</button>
+          <button id="restartBtn"><i class="fas fa-rotate-left"></i> Restart</button>
         </div>
       </div>
     </div>
@@ -294,173 +294,172 @@
 
   <script>
     const finalSummary = [
-      'Know the full cost of renting before choosing a place. Rent is only one part of the budget.',
-      'Ask questions before signing anything so you understand fees, rules, and what is included.',
-      'Save extra money before moving in because deposits and setup costs can add up quickly.',
-      'Research the apartment and the management company, not just the pictures or price online.',
-      'Read the lease carefully and document the apartment’s condition on move-in day.',
-      'The best first apartment is not just affordable today. It should still be manageable month after month.'
+     'In real life, renting is about managing your money property every month, not just a one and done thing.',
+      'You will need read agreements your landlord wants you to agree to, and understand costs before making any decisions.',
+      'places that look good online are not always good in reality. Doing your research matters!',
+      'Small mistakes like skipping a lease detail or ignoring problems with the property can cost real money later.',
+      'Renting is a long term thing you have to manage, so doing the right things will help you stay out of trouble and help avoid stress.'
     ];
 
     const scenes = [
       {
-        title: 'Jordan wants a place right away',
-        label: 'Scene 1: The apartment search begins',
-        situation: 'Jordan just graduated high school and is excited to move out. Jordan finds an apartment for $1,100 a month, makes $1,800 a month at work, and learns that utilities are not included.',
+        title: 'You want a place right away',
+        label: 'Scenario 1: your search begins',
+        situation: 'Say you just graduated high school and you cannot wait to move out of your parents hosue. you find an apartment for $1,100 a month, make $1,800 a month at your minimum wage job at McDonalds on Alma School, and then you find out that utilities are not included. in the place',
         choices: [
           {
-            text: 'Choose the apartment now because Jordan can probably make it work',
+            text: 'Just choose the apartment right now because you can make it work, I mean, you have the money',
             isCorrect: false,
-            resultTitle: 'Regret: this path is too risky',
-            resultSummary: 'Jordan is only looking at rent, not total costs. This could leave him short each month. Always budget for everything before choosing a place.',
+            resultTitle: 'You absolutely do not want to do that!',
+            resultSummary: 'You are only looking at the cost of rent, not total cost of everything. Not knowing what you are paying for can leave you with little to no money left over for youself. Always budget for absolutely everything before deciding to rent.',
             teach: [
               'Add up ALL monthly costs before deciding.',
-              'Don’t choose a place that maxes out your paycheck.'
+              'Don’t choose a place that squeezes your paycheck empty.'
             ]
           },
           {
-            text: 'Keep looking for something cheaper or a roommate option',
+            text: 'Keep looking for something that fits your monthly budget, or find a roommate',
             isCorrect: true,
-            resultTitle: 'Right path: Jordan should keep looking',
-            resultSummary: 'This works because Jordan is thinking beyond rent. A good apartment leaves room for real-life expenses each month.',
+            resultTitle: 'Yes, absolutely! you should keep looking',
+            resultSummary: 'thinking beyond rent cost is a really good way of determining if a place is right for you. An ideal place leaves room for other expenses each month.',
             teach: [
-              'Leave room for bills and savings.',
-              'Affordable beats “nice but risky.”'
+              'Leave room for other expenses.',
+              'Affordable beats any other place (so long as it is livable of course)'
             ]
           }
         ]
       },
       {
-        title: 'Sofia is excited to apply',
-        label: 'Scene 2: Move-in money shock',
-        situation: 'Sofia finds an apartment for $950 a month. She has exactly $950 saved and wants to apply right away because she thinks she finally has enough money.',
+        title: 'You found your place, and you are excited to move in right away',
+        label: 'Scenario 2: Money shock',
+        situation: 'So, you find an apartment for $950 a month. You have exactly that total saved and you wnat to move in right away because you think it is affordable.',
         choices: [
           {
-            text: 'Apply now because Sofia has one month of rent saved',
+            text: 'Accept everything and move in because because you can afford it right now',
             isCorrect: false,
-            resultTitle: 'Regret: one month of rent is not enough',
-            resultSummary: 'One month of rent is not enough. There are deposits, setup costs, and other fees before move-in.',
+            resultTitle: 'What the hell are you thinking? one month of rent is not enough, especially these days!',
+            resultSummary: 'One month of rent is absolutely not enough. There are other costs you have to deal with as well, including a security deposit, costs to move in, and other fees landlords will happily charge you with.',
             teach: [
-              'Ask about ALL upfront costs first.',
-              'Save more than just one month of rent.'
+              'Find out about about ALL upfront costs first.',
+              'Save more than just one month of rent. The first month usually costs 3x more than a normal months worth of rent!'
             ]
           },
           {
-            text: 'Wait, ask about up-front costs, and save more first',
+            text: ' Find out if there are more costs and save more money',
             isCorrect: true,
-            resultTitle: 'Right path: save and verify first',
-            resultSummary: 'This is better because Sofia is checking the full cost first. Smart renters plan before committing.',
+            resultTitle: 'This is exactly what you want to do',
+            resultSummary: 'Understanding the full costs of the place helps you understand what you are paying for, and if you have enough to actually live there  (duh). You should also make sure that you can afford to live at your place each month to avoid any conflict with your landlord!',
             teach: [
-              'Ask questions before applying.',
-              'Build a move-in savings cushion.'
+              'make sure you know what you are paying for before going thorugh with the place.',
+              'Make sure you can afford it each month, and even change your lifestyle around it if you really have to as long as it is reasonable. Ordering a Starbucks coffee in the morning and Chick Fil A for lunch every day is not gonna help you be able to afford rent!.'
             ]
           }
         ]
       },
       {
-        title: 'Ethan found a nice place',
-        label: 'Scene 3: The lease decision',
-        situation: 'Ethan tours a really nice apartment. He worries someone else will take it, so he thinks about signing the lease right away without reading all of it carefully.',
+        title: 'Oohhh, you found found a nice place',
+        label: 'Scenario 3: The lease decision',
+        situation: 'You just toured this really nice apartment. You really love this place and are worried that someone else will take it, so you think about signing that lease right away without even reading it.',
         choices: [
           {
-            text: 'Sign it quickly so nobody else gets the apartment',
+            text: 'Sign it right now because you need this so badly and I do not want anyone else renting this place',
             isCorrect: false,
-            resultTitle: 'Regret: never sign a lease blindly',
-            resultSummary: 'A lease is a legal contract. Signing without reading can cost you money later.',
+            resultTitle: 'That right there will be your biggest mistake! never sign a lease blindly',
+            resultSummary: 'Your lease is a legal contract. Signing without reading can cost you lots later, among other issues.',
             teach: [
-              'Always read the lease fully.',
-              'Ask questions before signing.'
+              'Always read your lease fully.',
+              'Do not hesitate to ask questions before signing the lease, its better to know more about a place you will live in.'
             ]
           },
           {
-            text: 'Read the lease carefully and ask questions first',
+            text: 'Take time to read the lease carefully and ask any questios you have first, at the risk of someone else looking into the place',
             isCorrect: true,
-            resultTitle: 'Right path: read before signing',
-            resultSummary: 'This is safer because Ethan understands what he is agreeing to. Good renters read before signing.',
+            resultTitle: 'This is probably the most important thing you will ever do when renting.',
+            resultSummary: 'This is because you will understand what you are actually agreeing to! If you were to not read it, you would sign some agreements that you do not even know about and that will most definetly cause problems in the long run.',
             teach: [
-              'Know the rules before signing.',
-              'Don’t rush legal decisions.'
+              'Know everything before signing.',
+              'Don’t rush, period.'
             ]
           }
         ]
       },
       {
-        title: 'Noah finds a cheaper apartment',
-        label: 'Scene 4: The management question',
-        situation: 'Noah finds a cheaper apartment than the others he has seen. It is owned by a major corporation, and the price looks really good, so he is tempted to commit immediately.',
+        title: 'You said that your other place was too expensive and you find a cheaper apartment',
+        label: 'Scenario 4: who owns it?',
+        situation: 'You find a cheaper place than the one you are looking at. However, It is owned and ran by a major corporation, and the current listing price looks really good, which means you are tempted to rent this place out. You did not tour this place at all.',
         choices: [
           {
-            text: 'Rent it immediately because the lower price means it is the best deal',
+            text: 'Rent it immediately because the lower price means it is the best deal you can possibly get',
             isCorrect: false,
-            resultTitle: 'Regret: cheap does not always mean smart',
-            resultSummary: 'Cheap rent doesn’t always mean a good place. Research matters. I interviewed my landlord Greg—he warned about large corporate-owned properties.',
+            resultTitle: 'No, cheap does not always the best, especially if it is ran by a major corporation, who usually, only cares about profits and not you.',
+            resultSummary: 'Cheap rent doesn’t always mean a good place. Research matters. I interviewed my landlord Greg and he he warned me that some corporations do not take good care of their properties, and will overcharge you for the places. He also says that they will raise the price of rent "Whenever they feel like it to make a profit"'. ,
             teach: [
-              'Check reviews and management quality.',
-              'Cheap can come with problems.'
+              'Check reviews if any quality/condition of the joint.',
+              'Be aware that places owned by major corporations can have shady practices.'
             ]
           },
           {
-            text: 'Research reviews, fees, and maintenance before deciding',
+            text: 'Research everything, including reviews if any, fees, and its condition before deciding.',
             isCorrect: true,
-            resultTitle: 'Right path: investigate before deciding',
-            resultSummary: 'This is better because Noah is researching first. Greg said to be careful with big corporations—so always investigate before signing.',
+            resultTitle: 'This is really important too! investigate before deciding',
+            resultSummary: 'I interviewed my landlord Greg and he he warned me that some corporations do not take good care of their properties, and will usually overcharge you for the places. He also says that they will raise the price of rent "Whenever they feel like it to make a profit", which is something you would want to avoid. They may also pass maintanance costs on to you! Even if it is not a major corporation doing it, landlords still have the tendancy to rip you off.',
             teach: [
               'Research before committing.',
-              'Good management matters as much as price.'
+              'Good management of the property matters as much as the price, you do not want to be living in a place that is activly falling apart! Hire an inspector if you have to!'
             ]
           }
         ]
       },
       {
-        title: 'Lena is about to move in',
-        label: 'Scene 5: Protecting yourself',
-        situation: 'Lena gets approved and arrives on move-in day. She notices scratches on the wall, a broken cabinet handle, and a stain in the bedroom carpet.',
+        title: 'Finally, you got a place to live in and are about to move in',
+        label: 'Scenario: Protecting yourself',
+        situation: 'It is finally time for you to move in. But you made the mistake of not inspecting the place first. You notice major cracks in the wall, a broken air conditioning unit, and a stains in your bedroom carpet.',
         choices: [
           {
-            text: 'Ignore the damage and move in because it is probably not a big deal',
+            text: 'Ignore these issues and move in anyway because you just need this place right away',
             isCorrect: false,
-            resultTitle: 'Regret: document the apartment first',
-            resultSummary: 'If Lena ignores damage, she could be charged for it later. Always protect yourself on move-in day.',
+            resultTitle: 'You can do that, but it is probably not a good idea.',
+            resultSummary: 'If you just move in and ignore ignores everything, landlords can easily put those costs on you once you are in instead of paying for it themselves like they should. Always make sure something is done about it before you move in.',
             teach: [
-              'Take photos of everything.',
-              'Report issues immediately.'
+              'Document everything.',
+              'Report these issues before you move in.'
             ]
           },
           {
-            text: 'Take pictures and report the damage immediately',
+            text: 'Document and report the damage immediately',
             isCorrect: true,
-            resultTitle: 'Right path: document everything',
-            resultSummary: 'This is smart because Lena is protecting her deposit. Documentation saves you later.',
+            resultTitle: 'Yes, document everything before you move in',
+            resultSummary: 'Doing this protects you from the landlord putting the costs on you if you move in ignoring these issues. It wil make the landlord responsible for damages instead of you!',
             teach: [
-              'Keep proof of condition.',
-              'Protect your deposit early.'
+              'Make sure you are not paying for any damages that you did not cause.',
+              'Protect yourself before moving in by making sure you know the condition of the place.'
             ]
           }
         ]
       },
       {
-        title: 'Chris is comparing final costs',
-        label: 'Scene 6: Looking past the sticker price',
-        situation: 'Chris finds an apartment with a rent price that looks pretty good, but he has not asked about extra monthly fees, deposits, utilities, or what happens when the lease renews.',
+        title: 'Lease is about to expire!',
+        label: 'Scenario 6: Renewing lease',
+        situation: 'You have been living in an apartment for a year with a rent price that has been pretty solid, and everything else going smoothly, but your lease is about to expire! The landlord sends a renewal offer with higher rent and new fees. You havenot checked the details yet.',
         choices: [
           {
-            text: 'Choose it because the listed rent looks affordable',
+            text: 'Renew blindly to keep the apartment without reading the new terms, because nothing has changed other than prices!',
             isCorrect: false,
-            resultTitle: 'Regret: the listed rent is not the whole story',
-            resultSummary: 'The listed rent isn’t the full cost. Extra fees can make it much more expensive. Kathy said to always look deeper than the price.',
+            resultTitle: 'You could do this but it will 100% cost you',
+            resultSummary: 'Renewals can change rent, add fees, or update rules. If you sign blindly, he could pay higher fees he didn’t expect.',
             teach: [
               'Ask about ALL extra costs.',
-              'Don’t trust the listed price alone.'
+              'Make sure you read any new terms if any.'
             ]
           },
           {
-            text: 'Ask about all fees, deposits, utilities, and renewal terms first',
+            text: 'Review the renewal, compare costs to your current ones, and negotiate or consider other options',
             isCorrect: true,
-            resultTitle: 'Right path: check the full cost first',
-            resultSummary: 'This is best because Chris is checking total cost. Kathy’s advice: always understand the full price before committing.',
+            resultTitle: 'Yes, please do this',
+            resultSummary: 'Your rent can increase and fees can change, so you should review, ask any necessary questions, and look at options before renewing.',
             teach: [
-              'Know every monthly cost.',
-              'Look beyond the advertised rent.'
+              'Know yor monthly costs.',
+              'Do not stay if you cannot afford it.'
             ]
           }
         ]
