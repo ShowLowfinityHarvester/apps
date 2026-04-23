@@ -269,7 +269,7 @@
         </div>
 
         <div class="choices-card hidden fade-in" id="choicesCard">
-          <div class="section-heading">What should you do?</div>
+          <div class="section-heading">What are you gonna do?</div>
           <div class="choice-grid" id="choiceGrid"></div>
         </div>
 
@@ -294,18 +294,18 @@
 
   <script>
     const finalSummary = [
-     'In real life, renting is about managing your money property every month, not just a one and done thing.',
-      'You will need read agreements your landlord wants you to agree to, and understand costs before making any decisions.',
-      'places that look good online are not always good in reality. Doing your research matters!',
-      'Small mistakes like skipping a lease detail or ignoring problems with the property can cost real money later.',
-      'Renting is a long term thing you have to manage, so doing the right things will help you stay out of trouble and help avoid stress.'
+     'In real life, renting is about managing your money and the landlords property every month. It is not just a one and done thing.',
+      'You will need read agreements your landlord wants you to agree to, and understand their terms and the costs of everything before making any decisions.',
+      'Doing your research matters! For example, places that look good online are not always good in reality.',
+      'Small mistakes like ignoring problems with the property, even if it is not your fault, can cost lots of money later.',
+      'Renting is a long term thing you have to manage, so doing everything right will help you stay out of trouble and help avoid stress and all that stuff..'
     ];
 
     const scenes = [
       {
         title: 'You want a place right away',
         label: 'Scenario 1: your search begins',
-        situation: 'Say you just graduated high school and you cannot wait to move out of your parents hosue. you find an apartment for $1,100 a month, make $1,800 a month at your minimum wage job at McDonalds on Alma School, and then you find out that utilities are not included. in the place',
+        situation: 'Say you just graduated high school and you cannot wait to move out of your parents hosue. you find an apartment for $1,100 a month, make $1,800 a month at your minimum wage job at McDonalds on Alma School, and then you find out that utilities are not included.',
         choices: [
           {
             text: 'Just choose the apartment right now because you can make it work, I mean, you have the money',
@@ -320,8 +320,8 @@
           {
             text: 'Keep looking for something that fits your monthly budget, or find a roommate',
             isCorrect: true,
-            resultTitle: 'Yes, absolutely! you should keep looking',
-            resultSummary: 'thinking beyond rent cost is a really good way of determining if a place is right for you. An ideal place leaves room for other expenses each month.',
+            resultTitle: 'Yes, absolutely! you should keep looking for something better',
+            resultSummary: 'thinking beyond rent cost is a really good way of determining if a place is right for you. An ideal place will leave you with money left over for other expenses each month.',
             teach: [
               'Leave room for other expenses.',
               'Affordable beats any other place (so long as it is livable of course)'
@@ -331,14 +331,14 @@
       },
       {
         title: 'You found your place, and you are excited to move in right away',
-        label: 'Scenario 2: Money shock',
-        situation: 'So, you find an apartment for $950 a month. You have exactly that total saved and you wnat to move in right away because you think it is affordable.',
+        label: 'Scenario 2: Costs',
+        situation: 'So, you find an apartment for $950 a month. You make $1,120 a month and you wnat to move in right away because you think it is affordable.',
         choices: [
           {
             text: 'Accept everything and move in because because you can afford it right now',
             isCorrect: false,
-            resultTitle: 'What the hell are you thinking? one month of rent is not enough, especially these days!',
-            resultSummary: 'One month of rent is absolutely not enough. There are other costs you have to deal with as well, including a security deposit, costs to move in, and other fees landlords will happily charge you with.',
+            resultTitle: 'That is probably not a good idea. The first month you move in will usually cost you more than one month of rent!',
+            resultSummary: 'You will not be paying one month of rent on your first month. There are other costs you have to deal with as well, including a security deposit, utilities, and other fees landlords will happily charge you with.',
             teach: [
               'Find out about about ALL upfront costs first.',
               'Save more than just one month of rent. The first month usually costs 3x more than a normal months worth of rent!'
@@ -348,7 +348,7 @@
             text: ' Find out if there are more costs and save more money',
             isCorrect: true,
             resultTitle: 'This is exactly what you want to do',
-            resultSummary: 'Understanding the full costs of the place helps you understand what you are paying for, and if you have enough to actually live there  (duh). You should also make sure that you can afford to live at your place each month to avoid any conflict with your landlord!',
+            resultSummary: 'Understanding the full costs of the place helps you understand what you are paying for, and if you have enough to actually live there. You should also make sure that you can afford to live at your place EACH month to avoid any conflict with your landlord!',
             teach: [
               'make sure you know what you are paying for before going thorugh with the place.',
               'Make sure you can afford it each month, and even change your lifestyle around it if you really have to as long as it is reasonable. Ordering a Starbucks coffee in the morning and Chick Fil A for lunch every day is not gonna help you be able to afford rent!.'
@@ -359,13 +359,13 @@
       {
         title: 'Oohhh, you found found a nice place',
         label: 'Scenario 3: The lease decision',
-        situation: 'You just toured this really nice apartment. You really love this place and are worried that someone else will take it, so you think about signing that lease right away without even reading it.',
+        situation: 'You just toured this really nice apartment. You really love this place and are worried that someone else will snatch it, so you think about signing that lease right away without even reading it.',
         choices: [
           {
-            text: 'Sign it right now because you need this so badly and I do not want anyone else renting this place',
+            text: 'Sign it right now because you need this so badly and you do not want anyone else renting this place, plus, we blindly agree to things online anyway so what is the big deal?',
             isCorrect: false,
             resultTitle: 'That right there will be your biggest mistake! never sign a lease blindly',
-            resultSummary: 'Your lease is a legal contract. Signing without reading can cost you lots later, among other issues.',
+            resultSummary: 'Your lease is a legal contract that you have to explicitly follow. Signing without reading can cost you lots later, among other issues.',
             teach: [
               'Always read your lease fully.',
               'Do not hesitate to ask questions before signing the lease, its better to know more about a place you will live in.'
@@ -377,7 +377,7 @@
             resultTitle: 'This is probably the most important thing you will ever do when renting.',
             resultSummary: 'This is because you will understand what you are actually agreeing to! If you were to not read it, you would sign some agreements that you do not even know about and that will most definetly cause problems in the long run.',
             teach: [
-              'Know everything before signing.',
+              'Know everything before you sign.',
               'Don’t rush, period.'
             ]
           }
@@ -386,7 +386,7 @@
       {
         title: 'The other place you were looking at was too expensive and you find a cheaper place',
         label: 'Scenario 4: who owns it?',
-        situation: 'You find a cheaper place than the one you are looking at. However, It is owned and ran by a major corporation like Blackstone, and the current listing price looks really good, which means you are tempted to rent this place out.',
+        situation: 'You find a cheaper place than the one you are looking at. However, It is owned and ran by the major corporation Blackstone, and the current listing price looks really good, which means you are tempted to rent this place out.',
         choices: [
           {
             text: 'Rent it immediately because the lower price means it is the best deal you can possibly get',
@@ -401,11 +401,11 @@
           {
             text: 'Research everything, including reviews if any, fees, and its condition before deciding.',
             isCorrect: true,
-            resultTitle: 'This is really important too! investigate before deciding',
-            resultSummary: 'I interviewed my landlord Greg and he he warned me that some corporations do not take good care of their properties, and will usually overcharge you for the places. He also says that they will raise the price of rent "Whenever they feel like it to make a profit", which is something you would want to avoid. They may also pass maintanance costs on to you! Even if it is not a major corporation doing it, landlords still have the tendancy to rip you off.',
+            resultTitle: 'This is really important too! look at EVERYTHING before deciding',
+            resultSummary: 'I interviewed my landlord Greg and he told me from experience that some corporations do not take good care of their properties, and will usually overcharge you for the everything. He also says that they will raise the price of rent "Whenever they feel like it to make a profit", which is a major red flag. They may also pass maintanance costs on to you! Even if it is not a major corporation doing it, landlords still have the tendancy to rip you off.',
             teach: [
-              'Research before committing.',
-              'Good management of the property matters as much as the price, you do not want to be living in a place that is activly falling apart! Hire an inspector if you have to!'
+              'Research before your decision to move in.',
+              'Good management of a property matters as much as the price, you do not want to be living in a place that is activly falling apart! Hire an inspector if you have to!'
             ]
           }
         ]
@@ -413,26 +413,25 @@
       {
         title: 'Finally, you got a place to live in and are about to move in',
         label: 'Scenario: Protecting yourself',
-        situation: 'It is finally time for you to move in. But you made the mistake of not inspecting the place first. You notice major cracks in the wall, a broken air conditioning unit, and a stains in your bedroom carpet.',
+        situation: 'It is finally time for you to move in. But you made the mistake of not inspecting the place first. You notice worrying cracks in the wall, a broken air conditioning unit, and a stains in your bedroom carpet.',
         choices: [
           {
-            text: 'Ignore these issues and move in anyway because you just need this place right away',
+            text: 'Ignore these issues and move in anyway because it is not a huge deal as it is manageable',
             isCorrect: false,
             resultTitle: 'You can do that, but it is probably not a good idea.',
-            resultSummary: 'If you just move in and ignore ignores everything, landlords can easily put those costs on you once you are in instead of paying for it themselves like they should. Always make sure something is done about it before you move in.',
+            resultSummary: 'If you just move in and ignore everything, landlords can easily put those costs on you once you are in instead of paying for it themselves like they should. Always make sure something is done about it before you move in.',
             teach: [
               'Document everything.',
               'Report these issues before you move in.'
             ]
           },
           {
-            text: 'Document and report the damage immediately',
+            text: 'Document and report these issues right away',
             isCorrect: true,
-            resultTitle: 'Yes, document everything before you move in',
-            resultSummary: 'Doing this protects you from the landlord putting the costs on you if you move in ignoring these issues. It wil make the landlord responsible for damages instead of you!',
+            resultTitle: 'Yes, make note of everything wrong with the property before you move in',
+            resultSummary: 'Doing this protects you from the landlord putting the costs on you if you move in ignoring these issues. It will make the landlord responsible for damages instead of you!',
             teach: [
-              'Make sure you are not paying for any damages that you did not cause.',
-              'Protect yourself before moving in by making sure you know the condition of the place.'
+              'Make sure you are not paying for any damages that you did not cause.'
             ]
           }
         ]
@@ -446,14 +445,14 @@
             text: 'Renew blindly to keep the apartment without reading the new terms, because nothing has changed other than prices!',
             isCorrect: false,
             resultTitle: 'You could do this but it will 100% cost you',
-            resultSummary: 'Renewals can change rent, add fees, or update rules. If you sign blindly, he could pay higher fees he didn’t expect.',
+            resultSummary: 'Landlords can raise your rent, add fees, or update their terms. If you sign blindly, he could pay higher fees you didn’t expect.',
             teach: [
               'Ask about ALL extra costs.',
-              'Make sure you read any new terms if any.'
+              'Make sure you read new terms if any.'
             ]
           },
           {
-            text: 'Review the renewal, compare costs to your current ones, and negotiate or consider other options',
+            text: 'Review the new lease, compare new costs to your current ones, and negotiate or consider moving out if it is not right for you',
             isCorrect: true,
             resultTitle: 'Yes, please do this',
             resultSummary: 'Your rent can increase and fees can change, so you should review, ask any necessary questions, and look at options before renewing.',
