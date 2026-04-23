@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Rent or Regret Story Mode</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #1a1a1a;
+      color: #f0f0f0;
+      line-height: 1.6;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      min-height: 100vh;
+    }
+
+    #story-game {
+      padding: 40px 0 60px;
+      min-height: 100vh;
+      background-color: #1a1a1a;
+    }
+
+    #story-game h1 {
+      text-align: center;
+      font-size: 2.9rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #cfcfcf;
+      margin: 0 auto 28px;
+      max-width: 900px;
+      font-size: 1.05rem;
+    }
+
+    .project-container {
+      background: #2a2a2a;
+      padding: 25px;
+      border-radius: 10px;
+      text-align: left;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      border: 1px solid #333;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background-color: #3a3a3a;
+      border: 1px solid #4a4a4a;
+      color: #e0e0e0;
+      font-weight: 500;
+      font-size: 0.92rem;
+    }
+
+    .story-card,
+    .choices-card,
+    .result-card,
+    .ending-card,
+    .intro-card,
+    .overview-card {
+      background: #1f1f1f;
+      border: 1px solid #444;
+      border-radius: 10px;
+      padding: 22px;
+      margin-top: 18px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    }
+
+    .story-label {
+      color: #11ff00;
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .story-title {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .story-situation {
+      color: #f0f0f0;
+      font-size: 1.15rem;
+      margin-bottom: 0;
+    }
+
+    .section-heading {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    button,
+    .btn-custom {
+      color: #e0e0e0;
+      background-color: #3a3a3a;
+      border: 1px solid #f0f0f0;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      margin: 0 8px 8px 0;
+      transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover,
+    .btn-custom:hover {
+      background-color: #11ff00;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .choice-btn {
+      width: 100%;
+      min-height: 110px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      background-color: #2b2b2b;
+      border: 1px solid #555;
+      text-align: center;
+      margin: 0;
+    }
+
+    .controls {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .result-card.good {
+      border-color: rgba(17,255,0,.45);
+      background: linear-gradient(180deg, rgba(17,255,0,.09), rgba(31,31,31,1));
+    }
+
+    .result-card.bad {
+      border-color: rgba(255,95,95,.5);
+      background: linear-gradient(180deg, rgba(255,95,95,.10), rgba(31,31,31,1));
+    }
+
+    .result-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .teach-list {
+      margin: 10px 0 0 18px;
+      color: #e6e6e6;
+      padding-left: 1rem;
+    }
+
+    .teach-list li {
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .fade-in {
+      animation: fadeInUp 0.45s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      #story-game h1 {
+        font-size: 2.2rem;
+      }
+
+      .project-container {
+        padding: 15px;
+      }
+
+      .choice-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .story-title {
+        font-size: 1.65rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section id="story-game">
+    <div class="container">
+      <h1>Rent or Regret</h1>
+      <p class="subtitle">A story-based apartment renting game. You present each situation, click the class’s chosen answer, then use the result to teach what a first-time renter should know.</p>
+
+      <div class="project-container">
+        <div class="top-row">
+          <div class="pill"><i class="fas fa-book-open"></i> <span id="sceneIndicator">Chapter 1 of 6</span></div>
+          <div class="pill"><i class="fas fa-home"></i> First Apartment Story</div>
+        </div>
+
+        <div class="intro-card fade-in" id="introCard">
+          <div class="section-heading">Start the presentation</div>
+          <p>This story follows first-time renters as they make important apartment decisions. For each scene, ask the class what the character should do, click the answer they choose, and then use the on-screen explanation to teach them the right lesson.</p>
+          <div class="controls">
+            <button id="startBtn"><i class="fas fa-play"></i> Start Story</button>
+          </div>
+        </div>
+
+        <div class="overview-card hidden fade-in" id="overviewCard">
+          <div class="section-heading">What renting is like</div>
+          <p>Renting your first apartment can feel exciting because it means freedom and independence, but it also comes with real responsibilities. A renter signs a lease, pays rent every month, follows rules, and has to plan carefully so the apartment stays affordable.</p>
+          <ul class="teach-list">
+            <li>Rent is not the only cost. Most renters also pay for utilities, food, transportation, and personal bills.</li>
+            <li>Moving in usually costs more than one month of rent because there can be deposits, application fees, setup costs, and insurance.</li>
+            <li>A lease is a legal agreement, so renters need to read it carefully and understand the rules before signing.</li>
+            <li>Good choices can save money and stress. Bad choices can create problems fast.</li>
+          </ul>
+          <div class="controls">
+            <button id="continueBtn"><i class="fas fa-arrow-right"></i> Continue to Story</button>
+          </div>
+        </div>
+
+        <div class="story-card hidden fade-in" id="storyCard">
+          <div class="story-label" id="storyLabel">Scene 1</div>
+          <div class="story-title" id="storyTitle"></div>
+          <p class="story-situation" id="storySituation"></p>
+        </div>
+
+        <div class="choices-card hidden fade-in" id="choicesCard">
+          <div class="section-heading">What should the character do?</div>
+          <div class="choice-grid" id="choiceGrid"></div>
+        </div>
+
+        <div class="result-card hidden fade-in" id="resultCard">
+          <div class="result-title" id="resultTitle"></div>
+          <p id="resultSummary"></p>
+          <ul class="teach-list" id="teachList"></ul>
+        </div>
+
+        <div class="ending-card hidden fade-in" id="endingCard">
+          <div class="section-heading">TL;DR: General takeaways</div>
+          <ul class="teach-list" id="endingText"></ul>
+        </div>
+
+        <div class="controls hidden" id="navControls">
+          <button id="nextBtn"><i class="fas fa-arrow-right"></i> Next Scene</button>
+          <button id="restartBtn"><i class="fas fa-rotate-left"></i> Restart Story</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const finalSummary = [
+      'Know the full cost of renting before choosing a place. Rent is only one part of the budget.',
+      'Ask questions before signing anything so you understand fees, rules, and what is included.',
+      'Save extra money before moving in because deposits and setup costs can add up quickly.',
+      'Research the apartment and the management company, not just the pictures or price online.',
+      'Read the lease carefully and document the apartment’s condition on move-in day.',
+      'The best first apartment is not just affordable today. It should still be manageable month after month.'
+    ];
+
+    const scenes = [
+      {
+        title: 'Jordan wants a place right away',
+        label: 'Scene 1: The apartment search begins',
+        situation: 'Jordan just graduated high school and is excited to move out. Jordan finds an apartment for $1,100 a month, makes $1,800 a month at work, and learns that utilities are not included.',
+        choices: [
+          {
+            text: 'Choose the apartment now because Jordan can probably make it work',
+            isCorrect: false,
+            resultTitle: 'Regret: this path is too risky',
+            resultSummary: 'Jordan is only looking at the rent price, but a renter has to think about the full monthly cost of living. This apartment could leave Jordan short on money every month. Here is the big lesson: first-time renters should not pick a place based only on whether the rent seems barely possible. They should ask whether the apartment still fits after paying utilities, groceries, transportation, phone bills, and other needs.',
+            teach: [
+              'A renter should add up rent, utilities, groceries, transportation, phone bills, and emergency money before deciding a place is affordable.',
+              'An apartment that takes too much of a paycheck can create stress right away.',
+              'Sometimes the smartest choice is to keep looking, find a roommate, or lower the budget before signing anything.'
+            ]
+          },
+          {
+            text: 'Keep looking for something cheaper or a roommate option',
+            isCorrect: true,
+            resultTitle: 'Right path: Jordan should keep looking',
+            resultSummary: 'This is smarter because Jordan is thinking beyond the rent and making sure there is room in the budget for real life expenses. That is what a responsible renter does. A first apartment should be realistic, not just exciting, and a good decision leaves enough money for the rest of life after rent is paid.',
+            teach: [
+              'A good apartment decision should leave enough money for utilities, food, transportation, and savings.',
+              'Roommates or lower-cost apartments can make a first move-out plan more realistic.',
+              'Choosing a place that fits the full budget is more responsible than choosing the nicest one you can barely afford.'
+            ]
+          }
+        ]
+      },
+      {
+        title: 'Sofia is excited to apply',
+        label: 'Scene 2: Move-in money shock',
+        situation: 'Sofia finds an apartment for $950 a month. She has exactly $950 saved and wants to apply right away because she thinks she finally has enough money.',
+        choices: [
+          {
+            text: 'Apply now because Sofia has one month of rent saved',
+            isCorrect: false,
+            resultTitle: 'Regret: one month of rent is not enough',
+            resultSummary: 'A lot of first-time renters underestimate how much money they need before moving in. Rent is usually not the only up-front cost. Even if Sofia can pay one month of rent, she may still need money for an application fee, security deposit, utility setup, internet setup, or renter’s insurance. This means getting approved is not the same thing as being financially ready.',
+            teach: [
+              'Before applying, a renter should ask about the application fee, security deposit, first month’s rent, and any required setup costs.',
+              'Utilities, internet, renter’s insurance, and moving supplies can also cost money right away.',
+              'Having only the rent amount saved can leave a renter approved but still unable to move in comfortably.'
+            ]
+          },
+          {
+            text: 'Wait, ask about up-front costs, and save more first',
+            isCorrect: true,
+            resultTitle: 'Right path: save and verify first',
+            resultSummary: 'This is the stronger choice because Sofia is checking the full move-in cost before making a commitment she may not be ready for. Smart renters build a move-in fund, not just a rent fund, and they ask questions before applying so they know exactly what they will owe.',
+            teach: [
+              'Asking questions before applying helps a renter avoid expensive surprises.',
+              'Saving extra money creates a safer cushion for deposits, setup fees, and unexpected needs.',
+              'Planning ahead is a major part of being ready for a first apartment.'
+            ]
+          }
+        ]
+      },
+      {
+        title: 'Ethan found a nice place',
+        label: 'Scene 3: The lease decision',
+        situation: 'Ethan tours a really nice apartment. He worries someone else will take it, so he thinks about signing the lease right away without reading all of it carefully.',
+        choices: [
+          {
+            text: 'Sign it quickly so nobody else gets the apartment',
+            isCorrect: false,
+            resultTitle: 'Regret: never sign a lease blindly',
+            resultSummary: 'A lease is a legal agreement. If Ethan signs without reading, he could miss rules, fees, and penalties that cost him money later. The lesson here is that feeling rushed is exactly when a renter needs to slow down the most. A nice apartment can still come with guest limits, late fees, parking rules, pet rules, or penalties for moving out early.',
+            teach: [
+              'A renter should read the full lease and ask about anything confusing before signing.',
+              'Important details can include late fees, pet policies, guest rules, parking, maintenance responsibilities, and early move-out penalties.',
+              'Feeling rushed is exactly when a renter needs to slow down the most.'
+            ]
+          },
+          {
+            text: 'Read the lease carefully and ask questions first',
+            isCorrect: true,
+            resultTitle: 'Right path: read before signing',
+            resultSummary: 'This is the safer path because Ethan is protecting himself before agreeing to legal rules and financial obligations. Smart renters understand what they are signing, ask questions before they commit, and make sure the apartment is a good deal on paper, not just in person.',
+            teach: [
+              'Reading the lease helps a renter spot hidden costs and important policies before it is too late.',
+              'Questions should be asked before signing, not after moving in.',
+              'Smart renters understand what they are agreeing to.'
+            ]
+          }
+        ]
+      },
+      {
+        title: 'Noah finds a cheaper apartment',
+        label: 'Scene 4: The management question',
+        situation: 'Noah finds a cheaper apartment than the others he has seen. It is owned by a major corporation, and the price looks really good, so he is tempted to commit immediately.',
+        choices: [
+          {
+            text: 'Rent it immediately because the lower price means it is the best deal',
+            isCorrect: false,
+            resultTitle: 'Regret: cheap does not always mean smart',
+            resultSummary: 'The lower price might look attractive, but Noah still needs to know what kind of place he is actually renting and how the management treats tenants. I interviewed my landlord Greg, and he said, “Not to rent places owned by major corporations.” That does not mean every large company is automatically bad, but it does point to an important lesson: renters should research who manages the property, how maintenance works, and whether the good price is hiding bigger problems.',
+            teach: [
+              'A renter should read reviews and look for patterns about maintenance, communication, safety, and fees.',
+              'A low price is not a good deal if repairs never get done or management is hard to work with.',
+              'Researching the property is part of making a smart apartment decision.'
+            ]
+          },
+          {
+            text: 'Research reviews, fees, and maintenance before deciding',
+            isCorrect: true,
+            resultTitle: 'Right path: investigate before deciding',
+            resultSummary: 'This is the better path because Noah is checking whether the apartment is truly a good place to live, not just a low number on a website. I interviewed my landlord Greg, and he said, “Not to rent places owned by major corporations.” I used that interview to build this lesson: always research the management company and the property before signing. Price matters, but how renters are treated matters too.',
+            teach: [
+              'Reviews can reveal how a property is managed over time.',
+              'Before signing, renters should ask about repairs, response times, hidden fees, safety, and communication.',
+              'The best deal is the one that is affordable and well managed.'
+            ]
+          }
+        ]
+      },
+      {
+        title: 'Lena is about to move in',
+        label: 'Scene 5: Protecting yourself',
+        situation: 'Lena gets approved and arrives on move-in day. She notices scratches on the wall, a broken cabinet handle, and a stain in the bedroom carpet.',
+        choices: [
+          {
+            text: 'Ignore the damage and move in because it is probably not a big deal',
+            isCorrect: false,
+            resultTitle: 'Regret: document the apartment first',
+            resultSummary: 'If Lena ignores the damage, she may later be blamed for it and could lose part of her security deposit when she moves out. This is why move-in day is not just about getting settled. It is also about protecting yourself with proof. If there is no record of the damage, the renter may have a hard time showing it was already there.',
+            teach: [
+              'A renter should take photos or videos of damage before unpacking.',
+              'Problems should be reported right away so there is a record that they existed before move-in.',
+              'Protecting a security deposit starts on day one, not at the end of the lease.'
+            ]
+          },
+          {
+            text: 'Take pictures and report the damage immediately',
+            isCorrect: true,
+            resultTitle: 'Right path: document everything',
+            resultSummary: 'This is the smart move because Lena is creating proof of the apartment’s condition before she starts living there. Careful renters do not assume someone else will remember what was already broken. They keep their own records so they are protected later.',
+            teach: [
+              'Photos, videos, and written reports can help protect a renter’s deposit later.',
+              'If something is damaged on move-in day, the renter should make sure management knows right away.',
+              'Good records protect renters from unfair charges.'
+            ]
+          }
+        ]
+      },
+      {
+        title: 'Chris is comparing final costs',
+        label: 'Scene 6: Looking past the sticker price',
+        situation: 'Chris finds an apartment with a rent price that looks pretty good, but he has not asked about extra monthly fees, deposits, utilities, or what happens when the lease renews.',
+        choices: [
+          {
+            text: 'Choose it because the listed rent looks affordable',
+            isCorrect: false,
+            resultTitle: 'Regret: the listed rent is not the whole story',
+            resultSummary: 'An apartment can look affordable at first, but extra fees and future increases can make it much more expensive than expected. I interviewed a veteran renter, Kathy, and she said, “Check the interest rate on the property.” For a renter, the practical version of that advice is to look deeper than the number in the ad and ask about every cost and every lease detail that affects what you will really pay.',
+            teach: [
+              'A renter should ask about deposits, monthly fees, utilities, renter’s insurance, parking costs, and lease renewal changes.',
+              'The listed rent is only one part of the total housing cost.',
+              'Making a decision without checking the full cost can lead to a bad budget mistake.'
+            ]
+          },
+          {
+            text: 'Ask about all fees, deposits, utilities, and renewal terms first',
+            isCorrect: true,
+            resultTitle: 'Right path: check the full cost first',
+            resultSummary: 'This is the strongest choice because Chris is making a decision based on the real cost of living there, not just the advertised rent. I interviewed a veteran renter, Kathy, and she said, “Check the interest rate on the property.” I turned that into renter advice by focusing on total cost. First-time renters need to understand every fee, every monthly charge, and every lease term that affects their budget.',
+            teach: [
+              'A smart renter asks what is included and what costs extra every month.',
+              'Renewal terms matter because rent can sometimes increase after the first lease ends.',
+              'The best apartment decision is based on the total price, not the first number you see.'
+            ]
+          }
+        ]
+      }
+    ];
+
+    let currentScene = 0;
+    let choiceLocked = false;
+    let showingSummary = false;
+
+    const introCard = document.getElementById('introCard');
+    const overviewCard = document.getElementById('overviewCard');
+    const storyCard = document.getElementById('storyCard');
+    const choicesCard = document.getElementById('choicesCard');
+    const choiceGrid = document.getElementById('choiceGrid');
+    const resultCard = document.getElementById('resultCard');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultSummary = document.getElementById('resultSummary');
+    const teachList = document.getElementById('teachList');
+    const endingCard = document.getElementById('endingCard');
+    const endingText = document.getElementById('endingText');
+    const navControls = document.getElementById('navControls');
+    const nextBtn = document.getElementById('nextBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const sceneIndicator = document.getElementById('sceneIndicator');
+    const storyLabel = document.getElementById('storyLabel');
+    const storyTitle = document.getElementById('storyTitle');
+    const storySituation = document.getElementById('storySituation');
+    const startBtn = document.getElementById('startBtn');
+    const continueBtn = document.getElementById('continueBtn');
+
+    function shuffleArray(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function loadScene() {
+      const scene = scenes[currentScene];
+      choiceLocked = false;
+      showingSummary = false;
+      sceneIndicator.textContent = `Chapter ${currentScene + 1} of ${scenes.length}`;
+      storyLabel.textContent = scene.label;
+      storyTitle.textContent = scene.title;
+      storySituation.textContent = scene.situation;
+
+      choiceGrid.innerHTML = '';
+      const shuffledChoices = shuffleArray(scene.choices);
+      shuffledChoices.forEach((choice) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = choice.text;
+        btn.addEventListener('click', () => revealChoice(choice));
+        choiceGrid.appendChild(btn);
+      });
+
+      overviewCard.classList.add('hidden');
+      endingCard.classList.add('hidden');
+      storyCard.classList.remove('hidden');
+      choicesCard.classList.remove('hidden');
+      resultCard.classList.add('hidden');
+      navControls.classList.add('hidden');
+      nextBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Next Scene';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function revealChoice(choice) {
+      if (choiceLocked) return;
+      choiceLocked = true;
+
+      resultTitle.textContent = choice.resultTitle;
+      resultSummary.textContent = choice.resultSummary;
+      teachList.innerHTML = choice.teach.map(point => `<li>${point}</li>`).join('');
+      resultCard.className = `result-card fade-in ${choice.isCorrect ? 'good' : 'bad'}`;
+      resultCard.classList.remove('hidden');
+
+      const allButtons = choiceGrid.querySelectorAll('button');
+      allButtons.forEach(btn => btn.disabled = true);
+      navControls.classList.remove('hidden');
+      nextBtn.innerHTML = currentScene === scenes.length - 1
+        ? '<i class="fas fa-list"></i> Go to TL;DR'
+        : '<i class="fas fa-arrow-right"></i> Next Scene';
+    }
+
+    function showFinalSummary() {
+      showingSummary = true;
+      sceneIndicator.textContent = 'Wrap-Up';
+      storyCard.classList.add('hidden');
+      choicesCard.classList.add('hidden');
+      resultCard.classList.add('hidden');
+      endingText.innerHTML = finalSummary.map(point => `<li>${point}</li>`).join('');
+      endingCard.classList.remove('hidden');
+      navControls.classList.remove('hidden');
+      nextBtn.innerHTML = '<i class="fas fa-rotate-left"></i> Restart Story';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function restartStory() {
+      currentScene = 0;
+      choiceLocked = false;
+      showingSummary = false;
+      introCard.classList.remove('hidden');
+      overviewCard.classList.add('hidden');
+      storyCard.classList.add('hidden');
+      choicesCard.classList.add('hidden');
+      resultCard.classList.add('hidden');
+      endingCard.classList.add('hidden');
+      navControls.classList.add('hidden');
+      sceneIndicator.textContent = `Chapter 1 of ${scenes.length}`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    startBtn.addEventListener('click', () => {
+      introCard.classList.add('hidden');
+      overviewCard.classList.remove('hidden');
+    });
+
+    continueBtn.addEventListener('click', () => {
+      loadScene();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (showingSummary) {
+        restartStory();
+        return;
+      }
+
+      if (currentScene === scenes.length - 1) {
+        showFinalSummary();
+      } else {
+        currentScene += 1;
+        loadScene();
+      }
+    });
+
+    restartBtn.addEventListener('click', () => {
+      restartStory();
+    });
+  </script>
+</body>
+</html>
