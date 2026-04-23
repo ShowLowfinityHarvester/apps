@@ -233,7 +233,7 @@
 
       <div class="project-container">
         <div class="top-row">
-          <div class="pill"><i class="fas fa-book-open"></i> <span id="sceneIndicator">Scenario 1 of 6</span></div>
+          <div class="pill"><i class="fas fa-book-open"></i> <span id="sceneIndicator">Intro</span></div>
           <div class="pill"><i class="fas fa-home"></i> Return Home</div>
         </div>
 
@@ -570,7 +570,7 @@
       const scene = scenes[currentScene];
       choiceLocked = false;
       showingSummary = false;
-      sceneIndicator.textContent = `Chapter ${currentScene + 1} of ${scenes.length}`;
+      sceneIndicator.textContent = `Scenario ${currentScene + 1} of ${scenes.length}`;
       storyLabel.textContent = scene.label;
       storyTitle.textContent = scene.title;
       storySituation.textContent = scene.situation;
@@ -647,7 +647,7 @@
       endingCard.classList.add('hidden');
       navControls.classList.add('hidden');
       restartBtn.classList.remove('hidden');
-      sceneIndicator.textContent = `Chapter 1 of ${scenes.length}`;
+      sceneIndicator.textContent = `Scenario 1 of ${scenes.length}`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
